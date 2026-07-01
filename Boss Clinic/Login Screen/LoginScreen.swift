@@ -236,7 +236,7 @@ struct LoginScreen: View {
         .scrollDismissesKeyboard(.interactively)   // iOS 16+
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $navigateToHome) {
-            HomeScreen()
+            MainTabView()
         }
     }
 }
