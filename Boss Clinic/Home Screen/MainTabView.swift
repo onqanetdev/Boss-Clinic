@@ -33,13 +33,6 @@ struct MainTabView: View {
                 }
                 .tag(Tab.appointments)
 
-//            ReportsScreen()
-//                .tabItem {
-//                    Image(selectedTab == .reports ? "reports_selected" : "reports")
-//                        .imageScale(.small)
-//                    Text("Reports")
-//                }
-//                .tag(Tab.reports)
 
             NotificationScreen()
                 .tabItem {
