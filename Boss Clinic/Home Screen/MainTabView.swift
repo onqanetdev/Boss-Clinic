@@ -49,7 +49,7 @@ struct MainTabView: View {
                 }
                 .tag(Tab.notification)
 
-            ProfileScreen(path: $path)
+            ProfileScreen()
                 .tabItem {
                     Image(selectedTab == .profile ? "profile_selected" : "profile")
                         .imageScale(.small)

@@ -71,8 +71,6 @@ struct FlipCardsView: View {
 }
 
 
-
-
 #Preview {
     FlipCardsView()
 }
