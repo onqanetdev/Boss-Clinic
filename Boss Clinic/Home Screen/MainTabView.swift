@@ -10,6 +10,8 @@ import SwiftUI
 struct MainTabView: View {
 
     @State private var selectedTab: Tab = .home
+    
+    @State private var path = NavigationPath()
 
     var body: some View {
 
@@ -27,27 +29,27 @@ struct MainTabView: View {
                 .tabItem {
                     Image(selectedTab == .appointments ? "appointment_selected" : "appointment")
                         .imageScale(.small)
-                    Text("Appointments")
+                    Text("Medications")
                 }
                 .tag(Tab.appointments)
 
-            ReportsScreen()
-                .tabItem {
-                    Image(selectedTab == .reports ? "reports_selected" : "reports")
-                        .imageScale(.small)
-                    Text("Reports")
-                }
-                .tag(Tab.reports)
+//            ReportsScreen()
+//                .tabItem {
+//                    Image(selectedTab == .reports ? "reports_selected" : "reports")
+//                        .imageScale(.small)
+//                    Text("Reports")
+//                }
+//                .tag(Tab.reports)
 
             NotificationScreen()
                 .tabItem {
                     Image(selectedTab == .notification ? "notification_selected" : "notification")
                         .imageScale(.small)
-                    Text("Alerts")
+                    Text("Reminders")
                 }
                 .tag(Tab.notification)
 
-            ProfileScreen()
+            ProfileScreen(path: $path)
                 .tabItem {
                     Image(selectedTab == .profile ? "profile_selected" : "profile")
                         .imageScale(.small)
