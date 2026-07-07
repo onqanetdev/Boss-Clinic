@@ -11,19 +11,20 @@ struct RefillReminderCardView: View {
 
     var body: some View {
 
-        HStack(spacing: 20) {
+        HStack(spacing: 15) {
 
             // Medicine Icon
-            Image("medicine")
+            Image("med_okay")
                 .resizable()
-                .scaledToFit()
-                .frame(width: 42, height: 42)
+                .scaledToFill()
+                .frame(width: 20, height: 20)
+                .padding(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4)
                         .stroke(Color.white.opacity(0.15), lineWidth: 2)
                 )
+                
 
-            
 
             // Reminder Details
             VStack(alignment: .leading, spacing: 10) {
@@ -60,15 +61,15 @@ struct RefillReminderCardView: View {
                     )
             }
         }
-        .padding(5)
+        .padding(10)
         .background(
             Color(red: 7/255, green: 7/255, blue: 6/255)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.white.opacity(0.12), lineWidth: 2)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        //.clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }
 
