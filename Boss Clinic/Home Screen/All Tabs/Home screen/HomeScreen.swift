@@ -9,6 +9,9 @@ import SwiftUI
 
 struct HomeScreen: View {
     
+    @State var isScheduled: Bool = false
+    @State var isTodaySchedule: Bool = false
+    
     let schedules = [
 
             Schedule(
@@ -63,9 +66,20 @@ struct HomeScreen: View {
                         }
                     }
                 }
-
-                NextMedicationCardView()
-                TodaysScheduleView(schedules: schedules)
+               // NextMedicationCardView()
+                
+                if isScheduled {
+                    NextMedicationCardView()
+                } else {
+                    NoMedicationCardView()
+                }
+                
+                if isTodaySchedule {
+                    TodaysScheduleView(schedules: schedules)
+                } else {
+                    EmptyTodayScheduleView()
+                }
+                
                 RefillReminderCardView()
                 
                 Spacer()
@@ -83,3 +97,4 @@ struct HomeScreen: View {
 #Preview {
     HomeScreen()
 }
+
