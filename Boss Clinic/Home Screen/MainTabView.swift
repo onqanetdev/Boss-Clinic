@@ -12,6 +12,34 @@ struct MainTabView: View {
     @State private var selectedTab: Tab = .home
     
     @State private var path = NavigationPath()
+    
+    
+    
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.black
+ 
+        // Unselected tab items
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.gray
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.gray
+        ]
+ 
+        // Selected tab item
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor.white
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor.white
+        ]
+ 
+        // Apply to both the normal state and the "scrolled to edge" state —
+        // this is the part that stops it reverting to white when switching tabs.
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+ 
+    
+    
 
     var body: some View {
 
@@ -50,8 +78,13 @@ struct MainTabView: View {
                 }
                 .tag(Tab.profile)
         }
+        .toolbarBackground(Color.black, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .preferredColorScheme(.dark)
         .accentColor(.white)
         .navigationBarBackButtonHidden(true)
     }
 }
+
+
 
