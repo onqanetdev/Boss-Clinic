@@ -13,8 +13,6 @@ struct MainTabView: View {
     
     @State private var path = NavigationPath()
     
-    
-    
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -38,9 +36,6 @@ struct MainTabView: View {
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
  
-    
-    
-
     var body: some View {
 
         TabView(selection: $selectedTab) {
