@@ -151,7 +151,7 @@ private struct ProfileRow: View {
                    .foregroundColor(.white)
 
                Text(title)
-                   .font(.custom("Inter18pt-SemiBold", size: 16))
+                   .font(.custom("Inter24pt-Regular", size: 16))
                    .foregroundColor(.white)
 
                Spacer()
@@ -191,3 +191,4 @@ private struct ProfileRow: View {
        ProfileScreen()
    }
 }
+
