@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyAy5_P9kJZ5OJiB1vkEpPUxsOuzjVzDUqs</string>
+	<key>GCM_SENDER_ID</key>
+	<string>782481744350</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.onqanet.Boss-Clinic</string>
+	<key>PROJECT_ID</key>
+	<string>testbossclinicnotify</string>
+	<key>STORAGE_BUCKET</key>
+	<string>testbossclinicnotify.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:782481744350:ios:3f69ac5f4f0f7f4803fd4f</string>
+</dict>
+</plist>
