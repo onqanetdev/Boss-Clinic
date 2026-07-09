@@ -13,74 +13,198 @@ import FirebaseMessaging
 import UserNotifications
 import SwiftUI
 
+//final class AppDelegate: NSObject, UIApplicationDelegate {
+//    func application(
+//        _ application: UIApplication,
+//        didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
+//    ) -> Bool {
+//        FirebaseApp.configure()
+//
+//        Messaging.messaging().delegate = self
+//
+//        UNUserNotificationCenter.current().delegate = self
+//
+//        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+//        UNUserNotificationCenter.current().requestAuthorization(options: authOptions, completionHandler: { _, _ in })
+//
+//        application.registerForRemoteNotifications()
+//
+//        Messaging.messaging().token { token, error in
+//            if let error {
+//                print("Error fetching FCM registration token: \(error)")
+//            } else if let token {
+//                print("FCM registration token: \(token)")
+//            }
+//        }
+//
+//        return true
+//    }
+//
+//    func application(_: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+//        print("Oh no! Failed to register for remote notifications with error \(error)")
+//    }
+//
+//    func application(_: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+//        var readableToken = ""
+//        for index in 0 ..< deviceToken.count {
+//            readableToken += String(format: "%02.2hhx", deviceToken[index] as CVarArg)
+//        }
+//        print("Received an APNs device token: \(readableToken)")
+//    }
+//}
+//
+//extension AppDelegate: MessagingDelegate {
+//    @objc func messaging(_: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+//        print("Firebase token: \(String(describing: fcmToken))")
+//    }
+//}
+//
+//extension AppDelegate: UNUserNotificationCenterDelegate {
+//    func userNotificationCenter(
+//        _: UNUserNotificationCenter,
+//        willPresent _: UNNotification,
+//        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+//    ) {
+//        completionHandler([[.banner, .list, .sound]])
+//    }
+//
+//    func userNotificationCenter(
+//        _: UNUserNotificationCenter,
+//        didReceive response: UNNotificationResponse,
+//        withCompletionHandler completionHandler: @escaping () -> Void
+//    ) {
+//        let userInfo = response.notification.request.content.userInfo
+//        NotificationCenter.default.post(
+//            name: Notification.Name("didReceiveRemoteNotification"),
+//            object: nil,
+//            userInfo: userInfo
+//        )
+//        completionHandler()
+//    }
+//}
+
+
 final class AppDelegate: NSObject, UIApplicationDelegate {
+ 
     func application(
         _ application: UIApplication,
-        didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+ 
         FirebaseApp.configure()
-
+ 
         Messaging.messaging().delegate = self
-
         UNUserNotificationCenter.current().delegate = self
-
-        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-        UNUserNotificationCenter.current().requestAuthorization(options: authOptions, completionHandler: { _, _ in })
-
-        application.registerForRemoteNotifications()
-
-        Messaging.messaging().token { token, error in
-            if let error {
-                print("Error fetching FCM registration token: \(error)")
-            } else if let token {
-                print("FCM registration token: \(token)")
+ 
+        UNUserNotificationCenter.current().requestAuthorization(
+            options: [.alert, .badge, .sound]
+        ) { granted, error in
+            if let error = error {
+                print("Notification permission error: \(error.localizedDescription)")
             }
+            print("Notification permission granted: \(granted)")
         }
-
+ 
+        application.registerForRemoteNotifications()
+ 
         return true
     }
-
-    func application(_: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        print("Oh no! Failed to register for remote notifications with error \(error)")
+ 
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        Messaging.messaging().apnsToken = deviceToken
     }
-
-    func application(_: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        var readableToken = ""
-        for index in 0 ..< deviceToken.count {
-            readableToken += String(format: "%02.2hhx", deviceToken[index] as CVarArg)
-        }
-        print("Received an APNs device token: \(readableToken)")
+ 
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        print("Failed to register for remote notifications: \(error.localizedDescription)")
     }
 }
-
+ 
+// MARK: - MessagingDelegate
+ 
 extension AppDelegate: MessagingDelegate {
-    @objc func messaging(_: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("Firebase token: \(String(describing: fcmToken))")
+ 
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        guard let fcmToken else { return }
+        print("FCM registration token: \(fcmToken)")
+ 
+        NotificationTokenManager.shared.saveTokenIfPossible(fcmToken)
     }
 }
-
+ 
+// MARK: - UNUserNotificationCenterDelegate
+ 
 extension AppDelegate: UNUserNotificationCenterDelegate {
+ 
     func userNotificationCenter(
-        _: UNUserNotificationCenter,
-        willPresent _: UNNotification,
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([[.banner, .list, .sound]])
+        completionHandler([.banner, .list, .sound, .badge])
     }
-
+ 
     func userNotificationCenter(
-        _: UNUserNotificationCenter,
+        _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
-        NotificationCenter.default.post(
-            name: Notification.Name("didReceiveRemoteNotification"),
-            object: nil,
-            userInfo: userInfo
-        )
+        print("Notification tapped with payload: \(userInfo)")
+ 
+        NotificationRouter.shared.handleNotificationTap(userInfo: userInfo)
+ 
         completionHandler()
     }
 }
-
-
+ 
+// MARK: - Token persistence
+ 
+/// Saves the FCM token to Firestore under the current user, so your
+/// Cloud Function knows which device to send refill reminders to.
+///
+/// The FCM token can arrive *before* the user has logged in (e.g. right at
+/// app launch), so we cache it and flush it to Firestore as soon as a
+/// userId becomes available. Call `saveTokenIfPossible` again right after
+/// your login flow completes, in case the token already arrived earlier.
+final class NotificationTokenManager {
+ 
+    static let shared = NotificationTokenManager()
+ 
+    private var pendingToken: String?
+ 
+    private init() {}
+ 
+    /// TODO: Wire this up to however your app identifies the logged-in user
+    /// today (e.g. the phone number / user id you get back from your OTP
+    /// login API), not necessarily Firebase Auth.
+    var currentUserId: String? {
+        UserDefaults.standard.string(forKey: "currentUserId")
+    }
+ 
+    func saveTokenIfPossible(_ token: String? = nil) {
+        if let token {
+            pendingToken = token
+        }
+ 
+        guard let tokenToSave = pendingToken, let userId = currentUserId else {
+            return // will retry once both a token and a logged-in user exist
+        }
+ 
+        Firestore.firestore()
+            .collection("users")
+            .document(userId)
+            .setData(["fcmToken": tokenToSave], merge: true) { error in
+                if let error {
+                    print("Failed to save FCM token: \(error.localizedDescription)")
+                } else {
+                    print("Saved FCM token for user \(userId)")
+                }
+            }
+    }
+}

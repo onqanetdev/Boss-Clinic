@@ -12,15 +12,29 @@ import FirebaseCore
 
 
 
-
 @main
-struct Boss_ClinicApp: App {
+struct BossClinicApp: App {
+ 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+ 
+    @StateObject private var notificationRouter = NotificationRouter.shared
+ 
     var body: some Scene {
         WindowGroup {
-            //ContentView()
-            FlipCardsView()
+            FlipCardsView() // Replace with whatever your actual root view is
+                .fullScreenCover(item: $notificationRouter.pendingDoseReminder) { reminder in
+                    MedicationReminderView(
+                        reminder: reminder,
+                        onTakeNow: {
+                            // TODO: mark this dose as taken — e.g. decrement
+                            // quantityRemaining in Firestore for this medication
+                        },
+                        onSnooze: {
+                            // TODO: schedule a follow-up local notification a few
+                            // minutes from now for the same medication
+                        }
+                    )
+                }
         }
     }
 }
