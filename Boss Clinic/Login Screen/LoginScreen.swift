@@ -29,6 +29,13 @@ struct LoginScreen: View {
     
     @StateObject private var registerVM = RegisterViewModel()
     
+    //Sign Up Error
+    @State private var signUpPhoneError: String? = nil
+    @State private var emailError: String? = nil
+    @State private var passwordError: String? = nil
+    @State private var confirmPasswordError: String? = nil
+    
+    
     
     var body: some View {
         
@@ -95,6 +102,13 @@ struct LoginScreen: View {
                                 phone = String(newValue.filter(\.isNumber).prefix(10))
                             }
                             .padding(.bottom, 5)
+                            
+                            if let signUpPhoneError {
+                                Text(signUpPhoneError)
+                                    .font(.custom("Inter18pt-Regular", size: 12))
+                                    .foregroundColor(.red)
+                                    .padding(.top, 2)
+                            }
 
                             // MARK: Email
                             Text("Email")
@@ -110,6 +124,13 @@ struct LoginScreen: View {
                                 textContentType: .emailAddress
                             )
                             .padding(.bottom, 5)
+                            
+                            if let emailError {
+                                Text(emailError)
+                                    .font(.custom("Inter18pt-Regular", size: 12))
+                                    .foregroundColor(.red)
+                                    .padding(.top, 2)
+                            }
 
                             // MARK: Password
                             Text("Password")
@@ -126,6 +147,12 @@ struct LoginScreen: View {
                             )
                             .padding(.bottom, 5)
                             
+                            if let passwordError {
+                                Text(passwordError)
+                                    .font(.custom("Inter18pt-Regular", size: 12))
+                                    .foregroundColor(.red)
+                                    .padding(.top, 2)
+                            }
                             
                             //MARK: Confirm Password
                             
@@ -142,6 +169,13 @@ struct LoginScreen: View {
                                 textContentType: .password
                             )
                             .padding(.bottom, 20)
+                            
+                            if let confirmPasswordError {
+                                Text(confirmPasswordError)
+                                    .font(.custom("Inter18pt-Regular", size: 12))
+                                    .foregroundColor(.red)
+                                    .padding(.top, 2)
+                            }
                             
 
                         } else {
@@ -203,28 +237,38 @@ struct LoginScreen: View {
                             if isSignUp {
                                 //print("Sign Up API")
                                 
+                                // Clear previous validation errors
+                                    signUpPhoneError = nil
+                                    emailError = nil
+                                    passwordError = nil
+                                    confirmPasswordError = nil
+                                
                                 guard !fullName.trimmingCharacters(in: .whitespaces).isEmpty else {
                                     registerVM.errorMessage = "Please enter your full name."
                                     return
                                 }
 
                                 guard isValidPhone(phone) else {
-                                    registerVM.errorMessage = "Please enter a valid 10-digit phone number."
+                                    //registerVM.errorMessage = "Please enter a valid 10-digit phone number."
+                                    signUpPhoneError = "Phone number must be 10 digits."
                                     return
                                 }
 
                                 guard isValidEmail(email) else {
-                                    registerVM.errorMessage = "Please enter a valid email address."
+                                    //registerVM.errorMessage = "Please enter a valid email address."
+                                    emailError = "Please enter a valid email address."
                                     return
                                 }
 
                                 guard password.count >= 8 else {
-                                    registerVM.errorMessage = "Password must be at least 8 characters long."
+                                    //registerVM.errorMessage = "Password must be at least 8 characters long."
+                                    passwordError = "Password must be at least 8 characters."
                                     return
                                 }
 
                                 guard password == confirmPassword else {
-                                    registerVM.errorMessage = "Passwords do not match."
+                                    //registerVM.errorMessage = "Passwords do not match."
+                                    confirmPasswordError = "Passwords do not match."
                                     return
                                 }
                                 
