@@ -54,7 +54,9 @@ struct FlipCardsView: View {
                             .foregroundColor(.white)
                         
                         Button("Log in") {
-                            print("Tapped")
+                            //print("Tapped")
+                            navigateToLogin = true
+                            print("Button Tapped")
                         }
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)

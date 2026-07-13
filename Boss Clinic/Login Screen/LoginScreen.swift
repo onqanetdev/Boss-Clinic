@@ -24,220 +24,325 @@ struct LoginScreen: View {
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
+    @State private var confirmPassword = ""
+    
+    
+    @StateObject private var registerVM = RegisterViewModel()
     
     
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .center) {
+        
+        ZStack {
+            ScrollView(showsIndicators: false)
+            {
+                VStack(alignment: .center) {
 
-                Image("boss_clinic_icon_img")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 200, height: 100)
-                    .clipped()
-                    .padding(.bottom, 50)
+                    Image("boss_clinic_icon_img")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 200, height: 100)
+                        .clipped()
+                        .padding(.bottom, 50)
 
-                // Welcome
-                VStack(alignment: .leading, spacing: 10) {
+                    // Welcome
+                    VStack(alignment: .leading, spacing: 10) {
 
-                    Text(isSignUp ? "Create Account" : "Welcome back")
-                        .font(.custom("Inter24pt-Bold", size: 24))
+                        Text(isSignUp ? "Create Account" : "Welcome back")
+                            .font(.custom("Inter24pt-Bold", size: 24))
 
-                    Text(isSignUp
-                         ? "Create your account to get started."
-                         : "Log in to continue to your account.")
-                        .font(.custom("Inter18pt-Regular", size: 14))
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 30)
+                        Text(isSignUp
+                             ? "Create your account to get started."
+                             : "Log in to continue to your account.")
+                            .font(.custom("Inter18pt-Regular", size: 14))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 30)
 
-                // Form
-                VStack(alignment: .leading) {
-                    
-                    if isSignUp {
+                    // Form
+                    VStack(alignment: .leading) {
+                        
+                        if isSignUp {
 
-                        // MARK: Full Name
-                        Text("Full Name")
-                            .font(.custom("Inter18pt-SemiBold", size: 16))
-                            .foregroundColor(Color.white)
+                            // MARK: Full Name
+                            Text("Full Name")
+                                .font(.custom("Inter18pt-SemiBold", size: 16))
+                                .foregroundColor(Color.white)
+                                .padding(.bottom, 5)
+
+                            CustomTextField(
+                                text: $fullName,
+                                placeholder: "Enter your full name",
+                                prefixImage: "person"
+                            )
                             .padding(.bottom, 5)
 
-                        CustomTextField(
-                            text: $fullName,
-                            placeholder: "Enter your full name",
-                            prefixImage: "person"
-                        )
-                        .padding(.bottom, 5)
+                            // MARK: Phone
+                            Text("Phone")
+                                .font(.custom("Inter18pt-SemiBold", size: 16))
+                                .foregroundColor(Color.white)
+                                .padding(.bottom, 5)
 
-                        // MARK: Phone
-                        Text("Phone")
-                            .font(.custom("Inter18pt-SemiBold", size: 16))
-                            .foregroundColor(Color.white)
-                            .padding(.bottom, 5)
-
-                        CustomTextField(
-                            text: $phone,
-                            placeholder: "Enter your phone",
-                            prefixImage: "telephone",
-                            keyboardType: .phonePad,
-                            textContentType: .telephoneNumber
-                        )
-                        .onChange(of: phone) { newValue in
-                            phone = String(newValue.filter(\.isNumber).prefix(10))
-                        }
-                        .padding(.bottom, 5)
-
-                        // MARK: Email
-                        Text("Email")
-                            .font(.custom("Inter18pt-SemiBold", size: 16))
-                            .foregroundColor(Color.white)
-                            .padding(.bottom, 5)
-
-                        CustomTextField(
-                            text: $email,
-                            placeholder: "Enter your email",
-                            prefixImage: "email",
-                            keyboardType: .emailAddress,
-                            textContentType: .emailAddress
-                        )
-                        .padding(.bottom, 5)
-
-                        // MARK: Password
-                        Text("Password")
-                            .font(.custom("Inter18pt-SemiBold", size: 16))
-                            .foregroundColor(Color.white)
-                            .padding(.bottom, 5)
-
-                        CustomTextField(
-                            text: $password,
-                            placeholder: "Enter your password",
-                            prefixImage: "password",
-                            keyboardType: .default,
-                            textContentType: .password
-                        )
-                        .padding(.bottom, 20)
-
-                    } else {
-
-                        Text("Phone")
-                            .font(.custom("Inter18pt-SemiBold", size: 16))
-                            .foregroundColor(Color.white)
-                            .padding(.bottom, 10)
-
-                        CustomTextField(
-                            text: $phone,
-                            placeholder: "Enter your phone",
-                            prefixImage: "telephone",
-                            keyboardType: .phonePad,
-                            textContentType: .telephoneNumber
-                        )
-                        .onChange(of: phone) { newValue in
-                            phone = String(newValue.filter(\.isNumber).prefix(10))
-
-                            if phone.count == 10 {
-                                showPhoneError = false
+                            CustomTextField(
+                                text: $phone,
+                                placeholder: "Enter your phone",
+                                prefixImage: "telephone",
+                                keyboardType: .phonePad,
+                                textContentType: .telephoneNumber
+                            )
+                            .onChange(of: phone) { newValue in
+                                phone = String(newValue.filter(\.isNumber).prefix(10))
                             }
-                        }
-                        .padding(.bottom, 10)
+                            .padding(.bottom, 5)
 
-                        if showPhoneError {
-                            Text("Phone number must be 10 digits.")
-                                .font(.custom("Inter18pt-Regular", size: 12))
-                                .foregroundColor(.red)
-                        }
+                            // MARK: Email
+                            Text("Email")
+                                .font(.custom("Inter18pt-SemiBold", size: 16))
+                                .foregroundColor(Color.white)
+                                .padding(.bottom, 5)
 
-                        Spacer()
-                            .frame(height: 10)
+                            CustomTextField(
+                                text: $email,
+                                placeholder: "Enter your email",
+                                prefixImage: "email",
+                                keyboardType: .emailAddress,
+                                textContentType: .emailAddress
+                            )
+                            .padding(.bottom, 5)
 
-                        if showOTPField {
+                            // MARK: Password
+                            Text("Password")
+                                .font(.custom("Inter18pt-SemiBold", size: 16))
+                                .foregroundColor(Color.white)
+                                .padding(.bottom, 5)
 
-                            Text("OTP")
+                            CustomTextField(
+                                text: $password,
+                                placeholder: "Enter your password",
+                                prefixImage: "password",
+                                keyboardType: .default,
+                                textContentType: .password
+                            )
+                            .padding(.bottom, 5)
+                            
+                            
+                            //MARK: Confirm Password
+                            
+                            Text("Confirm Password")
+                                .font(.custom("Inter18pt-SemiBold", size: 16))
+                                .foregroundColor(Color.white)
+                                .padding(.bottom, 5)
+
+                            CustomTextField(
+                                text: $confirmPassword,
+                                placeholder: "Confirm password",
+                                prefixImage: "password",
+                                keyboardType: .default,
+                                textContentType: .password
+                            )
+                            .padding(.bottom, 20)
+                            
+
+                        } else {
+
+                            Text("Phone")
                                 .font(.custom("Inter18pt-SemiBold", size: 16))
                                 .foregroundColor(Color.white)
                                 .padding(.bottom, 10)
 
                             CustomTextField(
-                                text: $otp,
-                                placeholder: "Enter the OTP",
-                                prefixImage: "password",
-                                keyboardType: .numberPad,
-                                textContentType: .oneTimeCode
+                                text: $phone,
+                                placeholder: "Enter your phone",
+                                prefixImage: "telephone",
+                                keyboardType: .phonePad,
+                                textContentType: .telephoneNumber
                             )
+                            .onChange(of: phone) { newValue in
+                                phone = String(newValue.filter(\.isNumber).prefix(10))
+
+                                if phone.count == 10 {
+                                    showPhoneError = false
+                                }
+                            }
                             .padding(.bottom, 10)
+
+                            if showPhoneError {
+                                Text("Phone number must be 10 digits.")
+                                    .font(.custom("Inter18pt-Regular", size: 12))
+                                    .foregroundColor(.red)
+                            }
+
+                            Spacer()
+                                .frame(height: 10)
+
+                            if showOTPField {
+
+                                Text("OTP")
+                                    .font(.custom("Inter18pt-SemiBold", size: 16))
+                                    .foregroundColor(Color.white)
+                                    .padding(.bottom, 10)
+
+                                CustomTextField(
+                                    text: $otp,
+                                    placeholder: "Enter the OTP",
+                                    prefixImage: "password",
+                                    keyboardType: .numberPad,
+                                    textContentType: .oneTimeCode
+                                )
+                                .padding(.bottom, 10)
+                            }
                         }
-                    }
 
-                    PrimaryButton(
-                        title: isSignUp
-                            ? "Sign Up"
-                            : (showOTPField ? "Verify OTP" : "Submit")
-                    ) {
+                        PrimaryButton(
+                            title: isSignUp
+                                ? "Sign Up"
+                                : (showOTPField ? "Verify OTP" : "Submit")
+                        ) {
 
-                        if isSignUp {
-                            print("Sign Up API")
-                        } else {
-
-                            if !showOTPField {
-
-                                guard phone.count == 10 else {
-                                    showPhoneError = true
+                            if isSignUp {
+                                //print("Sign Up API")
+                                
+                                guard !fullName.trimmingCharacters(in: .whitespaces).isEmpty else {
+                                    registerVM.errorMessage = "Please enter your full name."
                                     return
                                 }
 
-                                showPhoneError = false
-
-                                withAnimation {
-                                    showOTPField = true
+                                guard isValidPhone(phone) else {
+                                    registerVM.errorMessage = "Please enter a valid 10-digit phone number."
+                                    return
                                 }
 
+                                guard isValidEmail(email) else {
+                                    registerVM.errorMessage = "Please enter a valid email address."
+                                    return
+                                }
+
+                                guard password.count >= 8 else {
+                                    registerVM.errorMessage = "Password must be at least 8 characters long."
+                                    return
+                                }
+
+                                guard password == confirmPassword else {
+                                    registerVM.errorMessage = "Passwords do not match."
+                                    return
+                                }
+                                
+                                
+                                let request = RegisterReqModel(
+                                       name: fullName,
+                                       email: email,
+                                       phone: phone,
+                                       password: password,
+                                       confirmPassword: confirmPassword
+                                   )
+
+                                   registerVM.registerNewUser(registerReqModel: request)
+                                
                             } else {
-                                navigateToHome = true
+
+                                if !showOTPField {
+
+                                    guard phone.count == 10 else {
+                                        showPhoneError = true
+                                        return
+                                    }
+
+                                    showPhoneError = false
+
+                                    withAnimation {
+                                        showOTPField = true
+                                    }
+
+                                } else {
+                                    navigateToHome = true
+                                }
                             }
                         }
+                        .padding(.top, 20)
+
+                    }
+                    .padding(.horizontal, 20)
+
+                    HStack {
+                        Text(isSignUp
+                             ? "Already have an account?"
+                             : "Don't have an account?")
+                            .font(.custom("Inter18pt-Regular", size: 14))
+                            .foregroundColor(.white)
+
+                        Button(isSignUp ? "Sign In" : "Sign Up") {
+                            withAnimation(.easeInOut) {
+                                isSignUp.toggle()
+
+                                // Reset the OTP state when switching modes
+                                showOTPField = false
+                                phone = ""
+                                otp = ""
+                                showPhoneError = false
+                            }
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
                     }
                     .padding(.top, 20)
 
+                    // Extra space so the last control can scroll above the keyboard
+                    Spacer()
+                        .frame(height: 40)
                 }
-                .padding(.horizontal, 20)
-
-                HStack {
-                    Text(isSignUp
-                         ? "Already have an account?"
-                         : "Don't have an account?")
-                        .font(.custom("Inter18pt-Regular", size: 14))
-                        .foregroundColor(.white)
-
-                    Button(isSignUp ? "Sign In" : "Sign Up") {
-                        withAnimation(.easeInOut) {
-                            isSignUp.toggle()
-
-                            // Reset the OTP state when switching modes
-                            showOTPField = false
-                            phone = ""
-                            otp = ""
-                            showPhoneError = false
-                        }
-                    }
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                }
-                .padding(.top, 20)
-
-                // Extra space so the last control can scroll above the keyboard
-                Spacer()
-                    .frame(height: 40)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 40)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 40)
+            .scrollDismissesKeyboard(.interactively)   // iOS 16+
+
+            
+            // Loader Overlay
+            if registerVM.isLoading {
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+                }
+            }
+            
         }
         .background(Color.black.ignoresSafeArea())
-        .scrollDismissesKeyboard(.interactively)   // iOS 16+
-        .navigationBarBackButtonHidden(true)
-        .navigationDestination(isPresented: $navigateToHome) {
-            MainTabView()
-        }
+            .onChange(of: registerVM.isRegistrationSuccessful) { success in
+                if success {
+                    navigateToHome = true
+                }
+            }
+            .alert(
+                "Error",
+                isPresented: Binding(
+                    get: { registerVM.errorMessage != nil },
+                    set: { _ in registerVM.errorMessage = nil }
+                )
+            ) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(registerVM.errorMessage ?? "")
+            }
+            .navigationBarBackButtonHidden(true)
+            .navigationDestination(isPresented: $navigateToHome) {
+                MainTabView()
+            }
+    }
+    
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        return NSPredicate(format: "SELF MATCHES %@", emailRegex)
+            .evaluate(with: email)
+    }
+
+    private func isValidPhone(_ phone: String) -> Bool {
+        let phoneRegex = "^[0-9]{10}$"
+        return NSPredicate(format: "SELF MATCHES %@", phoneRegex)
+            .evaluate(with: phone)
     }
 }
 
