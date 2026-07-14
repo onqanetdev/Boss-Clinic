@@ -11,7 +11,7 @@ import Foundation
 enum APIEndpoint: String {
     case register = "register"
     case login = "login"
-    
+    case verifyOTP = "verify-otp"
 }
 
 

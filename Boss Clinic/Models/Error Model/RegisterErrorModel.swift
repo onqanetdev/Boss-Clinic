@@ -46,3 +46,14 @@ struct GeneralErrorModel:Codable {
 }
 
 
+
+
+struct APIErrorResponse: Codable {
+    let message: String?
+    let errors: APIErrors?
+}
+
+struct APIErrors: Codable {
+    let otp: [String]?
+}
+

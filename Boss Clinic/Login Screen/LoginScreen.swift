@@ -29,6 +29,7 @@ struct LoginScreen: View {
     
     @StateObject private var registerVM = RegisterViewModel()
     @StateObject private var loginVM = LoginViewModel()
+    @StateObject private var verifyOTPVM = VerifyOTPViewModel()
     
     //Sign Up Error
     @State private var signUpPhoneError: String? = nil
@@ -301,7 +302,15 @@ struct LoginScreen: View {
 //                                    }
 
                                 } else {
-                                    navigateToHome = true
+                                    
+                                    let request = VerifyOTPReqModel(
+                                        phone: phone,
+                                        otp: otp
+                                    )
+
+                                    verifyOTPVM.verifyOTP(verifyOTPReqModel: request)
+                                    
+//                                    navigateToHome = true
                                 }
                             }
                         }
@@ -344,7 +353,7 @@ struct LoginScreen: View {
 
             
             // Loader Overlay
-            if registerVM.isLoading || loginVM.isLoading {
+            if registerVM.isLoading || loginVM.isLoading || verifyOTPVM.isLoading {
                 ZStack {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
@@ -362,13 +371,17 @@ struct LoginScreen: View {
                     navigateToHome = true
                 }
             }
-        
             .onChange(of: loginVM.isOTPSent) { success in
                 if success {
                     withAnimation {
                         showOTPField = true
                         isPhoneEditable = false
                     }
+                }
+            }
+            .onChange(of: verifyOTPVM.isLoginSuccessful) { success in
+                if success {
+                    navigateToHome = true
                 }
             }
         
@@ -382,6 +395,18 @@ struct LoginScreen: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(registerVM.errorMessage ?? "")
+            }
+        
+            .alert(
+                "Error",
+                isPresented: Binding(
+                    get: { verifyOTPVM.errorMessage != nil },
+                    set: { _ in verifyOTPVM.errorMessage = nil }
+                )
+            ) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(verifyOTPVM.errorMessage ?? "")
             }
             .navigationBarBackButtonHidden(true)
             .navigationDestination(isPresented: $navigateToHome) {
