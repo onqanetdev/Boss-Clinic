@@ -12,8 +12,8 @@ import SwiftUI
 struct ProfileScreen: View {
 
    // Replace these with your real user model / view model
-   let userName: String = "John Doe"
-   let userEmail: String = "john.doe@email.com"
+    @State private var userName = "John Doe"
+    @State private var userEmail  = "john.doe@email.com"
 
    @State private var showMyProfile = false
    @State private var showNotificationSettings = false
@@ -22,76 +22,101 @@ struct ProfileScreen: View {
    @State private var showPrivacyPolicy = false
 
    @State private var showLogoutConfirm = false
+    
+   @StateObject private var profileVM = ProfileViewModel()
 
    var body: some View {
-       ScrollView(showsIndicators: false) {
-           VStack(alignment: .leading, spacing: 24) {
+       
+       ZStack {
+           ScrollView(showsIndicators: false) {
+               VStack(alignment: .leading, spacing: 24) {
 
-               // MARK: Title
-               Text("Profile")
-                   .font(.custom("Inter24pt-Bold", size: 28))
-                   .foregroundColor(.white)
-                   .padding(.top, 20)
+                   // MARK: Title
+                   Text("Profile")
+                       .font(.custom("Inter24pt-Bold", size: 28))
+                       .foregroundColor(.white)
+                       .padding(.top, 20)
 
-               // MARK: Avatar + Name + Email
-               HStack(spacing: 16) {
-                   ZStack {
-                       Circle()
-                           .fill(Color.white)
-                           .frame(width: 88, height: 88)
+                   // MARK: Avatar + Name + Email
+                   HStack(spacing: 16) {
+                       ZStack {
+                           Circle()
+                               .fill(Color.white)
+                               .frame(width: 88, height: 88)
 
-                       Image(systemName: "person.fill")
-                           .resizable()
-                           .scaledToFit()
-                           .frame(width: 40, height: 40)
-                           .foregroundColor(.black)
+                           Image(systemName: "person.fill")
+                               .resizable()
+                               .scaledToFit()
+                               .frame(width: 40, height: 40)
+                               .foregroundColor(.black)
+                       }
+
+                       VStack(alignment: .leading, spacing: 4) {
+                           Text(userName)
+                               .font(.custom("Inter24pt-Bold", size: 22))
+                               .foregroundColor(.white)
+
+                           Text(userEmail)
+                               .font(.custom("Inter18pt-Regular", size: 15))
+                               .foregroundColor(Color.white.opacity(0.6))
+                       }
+                   }
+                   .padding(.bottom, 8)
+
+                   // MARK: Options
+                   VStack(spacing: 16) {
+
+                       ProfileRow(icon: .system("person"), title: "My Profile") {
+                           showMyProfile = true
+                       }
+
+                       ProfileRow(icon: .system("bell"), title: "Notification Settings") {
+                           showNotificationSettings = true
+                       }
+
+                       ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Reminder Settings") {
+                           showReminderSettings = true
+                       }
+
+                       ProfileRow(icon: .system("questionmark.circle"), title: "Help & Support") {
+                           showHelpSupport = true
+                       }
+
+                       // MARK: Now using your asset catalog image — replace "privacy_policy" with your actual asset name
+                       ProfileRow(icon: .asset("privacy_policy"), title: "Privacy Policy") {
+                           showPrivacyPolicy = true
+                       }
+
+                       // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
+                       ProfileRow(icon: .asset("logout_icon"), title: "Log Out") {
+                           showLogoutConfirm = true
+                       }
                    }
 
-                   VStack(alignment: .leading, spacing: 4) {
-                       Text(userName)
-                           .font(.custom("Inter24pt-Bold", size: 22))
-                           .foregroundColor(.white)
-
-                       Text(userEmail)
-                           .font(.custom("Inter18pt-Regular", size: 15))
-                           .foregroundColor(Color.white.opacity(0.6))
-                   }
+                   Spacer(minLength: 40)
                }
-               .padding(.bottom, 8)
-
-               // MARK: Options
-               VStack(spacing: 16) {
-
-                   ProfileRow(icon: .system("person"), title: "My Profile") {
-                       showMyProfile = true
-                   }
-
-                   ProfileRow(icon: .system("bell"), title: "Notification Settings") {
-                       showNotificationSettings = true
-                   }
-
-                   ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Reminder Settings") {
-                       showReminderSettings = true
-                   }
-
-                   ProfileRow(icon: .system("questionmark.circle"), title: "Help & Support") {
-                       showHelpSupport = true
-                   }
-
-                   // MARK: Now using your asset catalog image — replace "privacy_policy" with your actual asset name
-                   ProfileRow(icon: .asset("privacy_policy"), title: "Privacy Policy") {
-                       showPrivacyPolicy = true
-                   }
-
-                   // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
-                   ProfileRow(icon: .asset("logout_icon"), title: "Log Out") {
-                       showLogoutConfirm = true
-                   }
-               }
-
-               Spacer(minLength: 40)
+               .padding(.horizontal, 20)
            }
-           .padding(.horizontal, 20)
+           
+           if profileVM.isLoading {
+
+                       Color.black.opacity(0.4)
+                           .ignoresSafeArea()
+
+                       ProgressView()
+                           .progressViewStyle(.circular)
+                           .tint(.white)
+                           .scaleEffect(1.5)
+                   }
+   }//Highest View ZStack Ending
+       .onAppear {
+           profileVM.fetchProfile()
+       }
+       .onChange(of: profileVM.profileResponse) { response in
+           guard let response else { return }
+
+           userName = response.data.name
+           userEmail = response.data.email
        }
        .background(Color.black.ignoresSafeArea())
        .navigationBarBackButtonHidden(true)

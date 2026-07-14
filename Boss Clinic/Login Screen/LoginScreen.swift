@@ -381,6 +381,11 @@ struct LoginScreen: View {
             }
             .onChange(of: verifyOTPVM.isLoginSuccessful) { success in
                 if success {
+                    if let token = verifyOTPVM.loginResponse?.data.token {
+                                UserDefaults.standard.set(token, forKey: "accessToken")
+                                print("✅ Token Saved: \(token)")
+                            }
+                    
                     navigateToHome = true
                 }
             }
