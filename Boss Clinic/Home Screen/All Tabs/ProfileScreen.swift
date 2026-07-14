@@ -121,7 +121,15 @@ struct ProfileScreen: View {
        .background(Color.black.ignoresSafeArea())
        .navigationBarBackButtonHidden(true)
        .navigationDestination(isPresented: $showMyProfile) {
-           MyProfileScreen()
+           MyProfileScreen(
+            name: userName,
+            gender: profileVM.profileResponse?.data.gender ?? " ",
+            bloodGroup: profileVM.profileResponse?.data.bloodGroup ?? " ",
+            height: profileVM.profileResponse?.data.height ?? " ",
+            weight: profileVM.profileResponse?.data.weight ?? " ",
+            emergencyContact: profileVM.profileResponse?.data.emergencyContact ?? " ",
+            medicalHistory: profileVM.profileResponse?.data.medicalHistory ?? " "
+           )
        }
        .navigationDestination(isPresented: $showNotificationSettings) {
            NotificationScreen()
