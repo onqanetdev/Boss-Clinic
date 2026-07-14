@@ -28,6 +28,7 @@ struct LoginScreen: View {
     
     
     @StateObject private var registerVM = RegisterViewModel()
+    @StateObject private var loginVM = LoginViewModel()
     
     //Sign Up Error
     @State private var signUpPhoneError: String? = nil
@@ -192,12 +193,9 @@ struct LoginScreen: View {
                                 keyboardType: .phonePad,
                                 textContentType: .telephoneNumber
                             )
+                            .disabled(!isPhoneEditable)
                             .onChange(of: phone) { newValue in
                                 phone = String(newValue.filter(\.isNumber).prefix(10))
-
-                                if phone.count == 10 {
-                                    showPhoneError = false
-                                }
                             }
                             .padding(.bottom, 10)
 
@@ -293,10 +291,14 @@ struct LoginScreen: View {
                                     }
 
                                     showPhoneError = false
+                                    
+                                    
+                                    let request = LoginReqModel(phone: phone)
+                                    loginVM.loginUser(loginReqModel: request)
 
-                                    withAnimation {
-                                        showOTPField = true
-                                    }
+//                                    withAnimation {
+//                                        showOTPField = true
+//                                    }
 
                                 } else {
                                     navigateToHome = true
@@ -342,7 +344,7 @@ struct LoginScreen: View {
 
             
             // Loader Overlay
-            if registerVM.isLoading {
+            if registerVM.isLoading || loginVM.isLoading {
                 ZStack {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
@@ -360,6 +362,16 @@ struct LoginScreen: View {
                     navigateToHome = true
                 }
             }
+        
+            .onChange(of: loginVM.isOTPSent) { success in
+                if success {
+                    withAnimation {
+                        showOTPField = true
+                        isPhoneEditable = false
+                    }
+                }
+            }
+        
             .alert(
                 "Error",
                 isPresented: Binding(
