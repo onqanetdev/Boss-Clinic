@@ -13,6 +13,8 @@ enum APIEndpoint: String {
     case login = "login"
     case verifyOTP = "verify-otp"
     case profile = "profile"
+    case privacyPolicy = "privacy-policy"
+    case terms = "terms"
 }
 
 

@@ -22,6 +22,7 @@ struct ProfileScreen: View {
    @State private var showPrivacyPolicy = false
 
    @State private var showLogoutConfirm = false
+   @State private var showTermsandConditions = false
     
    @StateObject private var profileVM = ProfileViewModel()
 
@@ -86,11 +87,18 @@ struct ProfileScreen: View {
                        ProfileRow(icon: .asset("privacy_policy"), title: "Privacy Policy") {
                            showPrivacyPolicy = true
                        }
+                       
+                       // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
+                       ProfileRow(icon: .system("questionmark.circle"), title: "Terms & Conditions") {
+                           showTermsandConditions = true
+                       }
 
                        // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
                        ProfileRow(icon: .asset("logout_icon"), title: "Log Out") {
                            showLogoutConfirm = true
                        }
+                       
+                       
                    }
 
                    Spacer(minLength: 40)
@@ -143,9 +151,10 @@ struct ProfileScreen: View {
                .background(Color.black.ignoresSafeArea())
        }
        .navigationDestination(isPresented: $showPrivacyPolicy) {
-           Text("Privacy Policy")
-               .foregroundColor(.white)
-               .background(Color.black.ignoresSafeArea())
+           PrivacyScreen()
+       }
+       .navigationDestination(isPresented: $showTermsandConditions) {
+           TermsConditionScreen()
        }
        .confirmationDialog(
            "Are you sure you want to log out?",
