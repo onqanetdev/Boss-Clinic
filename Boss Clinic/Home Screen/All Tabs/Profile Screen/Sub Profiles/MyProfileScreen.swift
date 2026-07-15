@@ -22,6 +22,7 @@ struct MyProfileScreen: View {
     @State private var dateOfBirth = Date()
     @StateObject private var editProfileVM = EditProfileViewModel()
     @State private var showSuccessAlert = false
+    @State private var dateSelected = false
 
     var body: some View {
 
@@ -84,8 +85,8 @@ struct MyProfileScreen: View {
                     }
                     
 
-                    
-                    Text("Date of Birth")
+                
+                    Text(dateOfBirth == nil ? "Select Date of Birth" : displayDate)
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
 
@@ -276,6 +277,9 @@ struct MyProfileScreen: View {
         .background(Color.black.ignoresSafeArea())
         .navigationTitle("My Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: dateOfBirth) { _ in
+            dateSelected = true
+        }
         .onChange(of: editProfileVM.isProfileUpdated) { success in
             if success {
                 
@@ -303,6 +307,20 @@ struct MyProfileScreen: View {
             Text("Profile updated successfully.")
         }
     }
+    
+    
+    private var displayDate: String {
+
+//            guard let date = dateOfBirth else {
+//                return ""
+//            }
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd MMM yyyy"
+
+            return formatter.string(from: dateOfBirth)
+        }
+    
     
     private var formattedDate: String {
             let formatter = DateFormatter()
