@@ -146,9 +146,10 @@ struct ProfileScreen: View {
            ReminderScreen()
        }
        .navigationDestination(isPresented: $showHelpSupport) {
-           Text("Help & Support")
-               .foregroundColor(.white)
-               .background(Color.black.ignoresSafeArea())
+//           Text("Help & Support")
+//               .foregroundColor(.white)
+//               .background(Color.black.ignoresSafeArea())
+           ContactUsScreen()
        }
        .navigationDestination(isPresented: $showPrivacyPolicy) {
            PrivacyScreen()

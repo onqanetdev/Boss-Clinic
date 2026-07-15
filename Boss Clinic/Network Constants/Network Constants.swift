@@ -15,6 +15,7 @@ enum APIEndpoint: String {
     case profile = "profile"
     case privacyPolicy = "privacy-policy"
     case terms = "terms"
+    case contacts = "contacts"
 }
 
 
