@@ -18,6 +18,7 @@ enum APIEndpoint: String {
     case contacts = "contacts"
     case fcmtoken = "fcmtoken"
     case dashboard = "dashboard/today"
+    case medication = "medication"
 }
 
 

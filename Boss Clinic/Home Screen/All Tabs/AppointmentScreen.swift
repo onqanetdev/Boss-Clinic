@@ -21,59 +21,70 @@ struct Medication: Identifiable, Hashable {
 struct AppointmentScreen: View {
  
     @State private var showAddMedication = false
-    @State private var selectedMedication: Medication?
+    @State private var selectedMedication: ActiveMedication?
+    @StateObject private var medicationVM = MedicationListViewModel()
  
     // TODO: Replace with real data from your view model / API
-    @State private var medications: [Medication] = [
-          Medication(name: "Amoxicillin 500 mg", subtitle: "1 Tablet • Everyday"),
-          Medication(name: "Metformin 500 mg", subtitle: "1 Tablet • Everyday"),
-          Medication(name: "Atorvastatin 20 mg", subtitle: "1 Tablet • Everyday"),
-          Medication(name: "Lisinopril 10 mg", subtitle: "1 Tablet • Everyday")
-      ]
+//    @State private var medications: [Medication] = [
+//          Medication(name: "Amoxicillin 500 mg", subtitle: "1 Tablet • Everyday"),
+//          Medication(name: "Metformin 500 mg", subtitle: "1 Tablet • Everyday"),
+//          Medication(name: "Atorvastatin 20 mg", subtitle: "1 Tablet • Everyday"),
+//          Medication(name: "Lisinopril 10 mg", subtitle: "1 Tablet • Everyday")
+//      ]
+    
+    @State private var medications: [ActiveMedication] = []
  
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
- 
-                // MARK: Title + Add button
-                HStack {
-                    Text("All Medications")
-                        .font(.custom("Inter24pt-Bold", size: 23 ))
-                        .foregroundColor(.white)
- 
-                    Spacer()
- 
-//                    Button {
-//                        showAddMedication = true
-//                    } label: {
-//                        Image(systemName: "plus")
-//                            .font(.system(size: 22, weight: .semibold))
-//                            .foregroundColor(.white)
-//                    }
-                }
-                .padding(.top, 20)
-                .padding(.bottom, 16)
- 
-                Divider()
-                    .background(Color.white.opacity(0.2))
- 
-                // MARK: Medication list
-                if medications.isEmpty {
-                    emptyState
-                } else {
-                    ForEach(Array(medications.enumerated()), id: \.element.id) { index, medication in
-                        MedicationRow(medication: medication) {
-                            selectedMedication = medication
-                        }
- 
-                        Divider()
-                            .background(Color.white.opacity(0.2))
+        
+        ZStack {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+     
+                    // MARK: Title + Add button
+                    HStack {
+                        Text("All Medications")
+                            .font(.custom("Inter24pt-Bold", size: 23 ))
+                            .foregroundColor(.white)
+     
+                        Spacer()
                     }
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
+     
+                    Divider()
+                        .background(Color.white.opacity(0.2))
+     
+                    // MARK: Medication list
+                    if medications.isEmpty {
+                        emptyState
+                    } else {
+                        ForEach(Array(medications.enumerated()), id: \.element.id) { index, medication in
+                            MedicationRow(medication: medication) {
+                                selectedMedication = medication
+                            }
+     
+                            Divider()
+                                .background(Color.white.opacity(0.2))
+                        }
+                    }
+     
+                    Spacer(minLength: 40)
                 }
- 
-                Spacer(minLength: 40)
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
+
+            
+            if medicationVM.isLoading {
+
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .tint(.white)
+                    .scaleEffect(1.5)
+            }
+            
         }
         .background(Color.black.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
@@ -86,6 +97,15 @@ struct AppointmentScreen: View {
             Text(medication.name)
                 .foregroundColor(.white)
                 .background(Color.black.ignoresSafeArea())
+        }
+        .onAppear {
+            medicationVM.fetchMedicationList()
+        }
+        .onChange(of: medicationVM.medicationResponse) { response in
+
+            guard let response else { return }
+
+            medications = response.data
         }
     }
  
@@ -125,7 +145,7 @@ struct AppointmentScreen: View {
  
 private struct MedicationRow: View {
  
-    let medication: Medication
+    let medication: ActiveMedication
     let action: () -> Void
  
     var body: some View {
@@ -148,7 +168,7 @@ private struct MedicationRow: View {
                         .font(.custom("Inter18pt-SemiBold", size: 14))
                         .foregroundColor(.white)
  
-                    Text(medication.subtitle)
+                    Text(medication.dose + "" + medication.medicineType + "•" + medication.frequency)
                         .font(.custom("Inter18pt-Regular", size: 13))
                         .foregroundColor(Color.white.opacity(0.5))
                 }
