@@ -24,6 +24,11 @@ struct ProfileScreen: View {
    @State private var showLogoutConfirm = false
    @State private var showTermsandConditions = false
     
+   @State private var showDeleteAccount = false
+   @State private var showDeleteConfirmation = false
+
+   @State private var showDeleteAccountWebView = false
+    
    @StateObject private var profileVM = ProfileViewModel()
 
    var body: some View {
@@ -99,6 +104,22 @@ struct ProfileScreen: View {
                        }
                        
                        
+                       
+                       Divider()
+                           .background(Color.gray.opacity(0.3))
+                           .padding(.vertical, 10)
+
+                       ProfileRow(
+                           icon: .system("trash"),
+                           title: "Delete Account",
+                           titleColor: .red,
+                           iconColor: .red
+                       ) {
+                           //showDeleteConfirmation = true
+                           showDeleteAccountWebView = true
+                       }
+                       
+                       
                    }
 
                    Spacer(minLength: 40)
@@ -120,6 +141,20 @@ struct ProfileScreen: View {
        .onAppear {
            profileVM.fetchProfile()
        }
+//       .alert(
+//           "Delete Account?",
+//           isPresented: $showDeleteConfirmation
+//       ) {
+//           Button("Cancel", role: .cancel) { }
+//
+//           Button("Delete", role: .destructive) {
+//               //print("Delete Account")
+//               showDeleteAccountWebView = true
+//           }
+//       } message: {
+//           Text("This action is permanent. Your account and all associated data will be permanently deleted and cannot be recovered.")
+//       }
+
        .onChange(of: profileVM.profileResponse) { response in
            guard let response else { return }
 
@@ -157,17 +192,10 @@ struct ProfileScreen: View {
        .navigationDestination(isPresented: $showTermsandConditions) {
            TermsConditionScreen()
        }
-       .confirmationDialog(
-           "Are you sure you want to log out?",
-           isPresented: $showLogoutConfirm,
-           titleVisibility: .visible
-       ) {
-           Button("Log Out", role: .destructive) {
-               // TODO: Hook up your real logout logic here
-               print("User logged out")
-           }
-           Button("Cancel", role: .cancel) { }
+       .navigationDestination(isPresented: $showDeleteAccountWebView) {
+           DeleteAccountScreen()
        }
+
    }
 }
 
@@ -185,17 +213,34 @@ private struct ProfileRow: View {
    let icon: RowIcon
    let title: String
    let action: () -> Void
+   let titleColor: Color
+   let iconColor: Color
+    
+    
+    init(
+        icon: RowIcon,
+        title: String,
+        titleColor: Color = .white,
+        iconColor: Color = .white,
+        action: @escaping () -> Void
+    ) {
+        self.icon = icon
+        self.title = title
+        self.titleColor = titleColor
+        self.iconColor = iconColor
+        self.action = action
+    }
 
    var body: some View {
        Button(action: action) {
            HStack(spacing: 16) {
                iconView
                    .frame(width: 20, height: 20)
-                   .foregroundColor(.white)
+                   .foregroundColor(iconColor)
 
                Text(title)
                    .font(.custom("Inter24pt-Regular", size: 16))
-                   .foregroundColor(.white)
+                   .foregroundColor(titleColor)
 
                Spacer()
 
