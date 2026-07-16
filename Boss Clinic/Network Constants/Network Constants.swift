@@ -16,6 +16,8 @@ enum APIEndpoint: String {
     case privacyPolicy = "privacy-policy"
     case terms = "terms"
     case contacts = "contacts"
+    case fcmtoken = "fcmtoken"
+    case dashboard = "dashboard/today"
 }
 
 

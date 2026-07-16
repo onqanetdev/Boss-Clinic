@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TodaysScheduleView: View {
 
-    let schedules: [Schedule]
+    let schedules: [TodaySchedule]
 
     var body: some View {
 

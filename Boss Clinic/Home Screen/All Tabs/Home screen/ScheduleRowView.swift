@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ScheduleRowView: View {
 
-    let schedule: Schedule
+    let schedule: TodaySchedule
 
     var body: some View {
 
@@ -36,8 +36,9 @@ struct ScheduleRowView: View {
 
             Spacer()
 
-            Text(schedule.status.title)
+            Text(schedule.status)
                 .font(.custom("Inter18pt-Regular", size: 11))
+                //.foregroundColor(Color.gray)
                 .foregroundColor(schedule.status.color)
         }
         .padding(.vertical, 18)

@@ -10,88 +10,103 @@ import SwiftUI
 struct HomeScreen: View {
     
     @State var isScheduled: Bool = false
-    @State var isTodaySchedule: Bool = false
+    @State var isTodaySchedule: Bool = true
+    @StateObject private var dashboardVM = DashboardViewModel()
     
-    let schedules = [
-
-            Schedule(
-                time: "9:00 AM",
-                medicineName: "Lisinopril 10 mg",
-                status: .taken
-            ),
-
-            Schedule(
-                time: "1:00 PM",
-                medicineName: "Metformin 500 mg",
-                status: .upcoming
-            ),
-
-            Schedule(
-                time: "6:00 PM",
-                medicineName: "Atorvastatin 20 mg",
-                status: .upcoming
-            ),
-
-            Schedule(
-                time: "10:00 PM",
-                medicineName: "Vitamin D",
-                status: .upcoming
-            )
-        ]
+    
+    @State private var schedules: [TodaySchedule] = []
     
     
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 20) {
-                
-                HStack {
-                    Text("Hello, Jhon 👋🏽")
-                        .font(.custom("Inter18pt-SemiBold", size: 20))
-                        .foregroundColor(Color.white)
-                    Spacer()
-                   
-                    Button {
-                        print("Notification tapped")
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-
-                            Image(systemName: "bell")
+        
+        ZStack {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
+                    
+                    HStack {
+                        Text("Hello, Jhon 👋🏽")
+                            .font(.custom("Inter18pt-SemiBold", size: 20))
+                            .foregroundColor(Color.white)
+                        Spacer()
+                        
+                        Button {
+                            print("Notification tapped")
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                
+                                Image(systemName: "bell")
                                     .font(.system(size: 22))
                                     .foregroundColor(.white)
-
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 10, height: 10)
-                                .offset(x: -2, y: -3)
+                                
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 10, height: 10)
+                                    .offset(x: -2, y: -3)
+                            }
                         }
                     }
+                    // NextMedicationCardView()
+                    
+                    if isScheduled {
+                        NextMedicationCardView()
+                    } else {
+                        NoMedicationCardView()
+                    }
+                    
+                    if isTodaySchedule {
+                        TodaysScheduleView(schedules: schedules)
+                    } else {
+                        EmptyTodayScheduleView()
+                    }
+                    
+                    RefillReminderCardView()
+                    
+                    Spacer()
+                    
                 }
-               // NextMedicationCardView()
-                
-                if isScheduled {
-                    NextMedicationCardView()
-                } else {
-                    NoMedicationCardView()
-                }
-                
-                if isTodaySchedule {
-                    TodaysScheduleView(schedules: schedules)
-                } else {
-                    EmptyTodayScheduleView()
-                }
-                
-                RefillReminderCardView()
-                
-                Spacer()
-                
+                .frame(maxWidth: .infinity)
+                .padding()
             }
-            .frame(maxWidth: .infinity)
-            .padding()
+//            .background(Color.black.ignoresSafeArea())
+//            .navigationBarBackButtonHidden(true)
+//            .background()
+            
+            //Scroll View Ending
+            
+            // Loader
+            if dashboardVM.isLoading {
+                
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .tint(.white)
+                    .scaleEffect(1.5)
+            }
+            
         }
         .background(Color.black.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
-        .background()
+        .onAppear {
+
+            dashboardVM.fetchDashboard()
+        }
+        
+        .onChange(of: dashboardVM.dashboardResponse) { response in
+
+            guard let response else { return }
+
+            schedules = response.data.todaySchedule
+
+            if schedules.count == 0 {
+                isTodaySchedule = false
+            } else {
+                isTodaySchedule = true
+            }
+        }
     }
+    
 }
 
 #Preview {
