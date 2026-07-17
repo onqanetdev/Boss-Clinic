@@ -175,7 +175,11 @@ struct ProfileScreen: View {
            )
        }
        .navigationDestination(isPresented: $showNotificationSettings) {
-           NotificationScreen()
+           NotificationSettingsScreen()
+           //NotificationScreen()
+//                      Text("Notification Settings")
+//                          .foregroundColor(.white)
+//                          .background(Color.black.ignoresSafeArea())
        }
        .navigationDestination(isPresented: $showReminderSettings) {
            ReminderScreen()
