@@ -16,11 +16,16 @@ struct NotificationSettingsScreen: View {
     
     
     @StateObject private var notificationVM = NotificationSettingsViewModel()
+    
+    @StateObject private var updateVM = NotificationSettingsUpdateViewModel()
 
     @State private var medicationReminder = true
     @State private var refillReminder = true
     @State private var soundEnabled = true
     @State private var vibrationEnabled = true
+    
+    
+    @State private var settingsLoaded = false
 
     var body: some View {
 
@@ -121,7 +126,7 @@ struct NotificationSettingsScreen: View {
             }
             
             
-            if notificationVM.isLoading {
+            if notificationVM.isLoading || updateVM.isLoading {
 
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
@@ -131,8 +136,6 @@ struct NotificationSettingsScreen: View {
                         .tint(.white)
                         .scaleEffect(1.5)
                 }
-            
-            
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
@@ -146,8 +149,42 @@ struct NotificationSettingsScreen: View {
             refillReminder = response.data.refillReminders
             soundEnabled = response.data.sound
             vibrationEnabled = response.data.vibration
+            
+            settingsLoaded = true
         }
+        
+        .onChange(of: medicationReminder) { _ in
+            guard settingsLoaded else { return }
+            updateNotificationSettings()
+        }
+
+        .onChange(of: refillReminder) { _ in
+            guard settingsLoaded else { return }
+            updateNotificationSettings()
+        }
+
+        .onChange(of: soundEnabled) { _ in
+            guard settingsLoaded else { return }
+            updateNotificationSettings()
+        }
+
+        .onChange(of: vibrationEnabled) { _ in
+            guard settingsLoaded else { return }
+            updateNotificationSettings()
+        }
+        
+    }
+    
+    private func updateNotificationSettings() {
+
+        updateVM.updateNotificationSettings(
+            medicationReminders: medicationReminder,
+            refillReminders: refillReminder,
+            sound: soundEnabled,
+            vibration: vibrationEnabled
+        )
     }
 }
+
 
 
