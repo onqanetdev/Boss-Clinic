@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HomeScreen: View {
     
-    @State var isScheduled: Bool = false
+    @State var isScheduled: Bool = true
     @State var isTodaySchedule: Bool = true
     @StateObject private var dashboardVM = DashboardViewModel()
     

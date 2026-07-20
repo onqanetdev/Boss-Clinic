@@ -20,6 +20,7 @@ enum APIEndpoint: String {
     case dashboard = "dashboard/today"
     case medication = "medication"
     case notificationSettings = "settings/notifications"
+    case medicationOverview = "medication-overview"
 }
 
 
