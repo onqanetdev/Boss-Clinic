@@ -13,8 +13,11 @@ struct HomeScreen: View {
     @State var isTodaySchedule: Bool = true
     @StateObject private var dashboardVM = DashboardViewModel()
     
+    @StateObject private var reminderTakenVM = ReminderTakenViewModel()
+    
     
     @State private var schedules: [TodaySchedule] = []
+    @State var nextMedication: NextMedication?
     
     
     var body: some View {
@@ -48,7 +51,23 @@ struct HomeScreen: View {
                     // NextMedicationCardView()
                     
                     if isScheduled {
-                        NextMedicationCardView()
+                        NextMedicationCardView(
+                            receiveNextMedication: nextMedication
+                        ) {
+
+                            guard let medication = nextMedication else { return }
+
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "yyyy-MM-dd"
+
+                            let today = formatter.string(from: Date())
+
+                            reminderTakenVM.markReminderAsTaken(
+                                medicationID: medication.medicineId,
+                                time: medication.time,
+                                scheduledDate: today
+                            )
+                        }
                     } else {
                         NoMedicationCardView()
                     }
@@ -67,14 +86,9 @@ struct HomeScreen: View {
                 .frame(maxWidth: .infinity)
                 .padding()
             }
-//            .background(Color.black.ignoresSafeArea())
-//            .navigationBarBackButtonHidden(true)
-//            .background()
-            
-            //Scroll View Ending
             
             // Loader
-            if dashboardVM.isLoading {
+            if dashboardVM.isLoading || reminderTakenVM.isLoading {
                 
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
@@ -98,6 +112,14 @@ struct HomeScreen: View {
             guard let response else { return }
 
             schedules = response.data.todaySchedule
+            
+            nextMedication = response.data.nextMedication
+            
+            if nextMedication != nil {
+                isScheduled = true
+            } else {
+                isScheduled = false
+            }
 
             if schedules.count == 0 {
                 isTodaySchedule = false
@@ -105,8 +127,23 @@ struct HomeScreen: View {
                 isTodaySchedule = true
             }
         }
+        
+        .onChange(of: reminderTakenVM.reminderTakenResponse) { response in
+
+            guard let response else { return }
+
+            print(response.message)
+
+            dashboardVM.fetchDashboard()
+        }
+        
+        .onChange(of: reminderTakenVM.errorMessage) { error in
+
+            guard let error else { return }
+
+            print(error)
+        }
     }
-    
 }
 
 #Preview {

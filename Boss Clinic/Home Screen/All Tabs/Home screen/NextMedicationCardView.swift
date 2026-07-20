@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct NextMedicationCardView: View {
+    
+    var receiveNextMedication: NextMedication?
+    let onMarkAsTaken: () -> Void
 
     var body: some View {
 
@@ -17,13 +20,13 @@ struct NextMedicationCardView: View {
                 .font(.custom("Inter18pt-Regular", size: 13))
                 .foregroundColor(Color.white.opacity(0.75))
 
-            Text("Today, 10:00 AM")
+            Text("Today," + String(receiveNextMedication?.time ?? ""))
                 .font(.custom("Inter24pt-Bold", size: 16))
                 .foregroundColor(.white)
 
             HStack(alignment: .center) {
 
-                Text("Amoxicillin 500 mg")
+                Text(receiveNextMedication?.name ?? "")
                     .font(.custom("Inter18pt-Regular", size: 13))
                     .foregroundColor(.white)
 
@@ -31,8 +34,8 @@ struct NextMedicationCardView: View {
 
                 Button {
 
-                    print("Medication Taken")
-
+                    //print("Medication Taken")
+                    onMarkAsTaken()
                 } label: {
 
                     Text("Mark as Taken")
@@ -60,11 +63,6 @@ struct NextMedicationCardView: View {
     }
 }
 
-#Preview {
-    ZStack {
-        Color.black.ignoresSafeArea()
 
-        NextMedicationCardView()
-            .padding()
-    }
-}
+
+

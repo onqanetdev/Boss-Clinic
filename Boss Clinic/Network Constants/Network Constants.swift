@@ -21,6 +21,7 @@ enum APIEndpoint: String {
     case medication = "medication"
     case notificationSettings = "settings/notifications"
     case medicationOverview = "medication-overview"
+    case reminderTakenByTime = "reminders/take-by-time"
 }
 
 
