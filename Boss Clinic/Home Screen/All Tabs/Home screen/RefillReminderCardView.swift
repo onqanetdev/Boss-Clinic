@@ -21,6 +21,7 @@ struct RefillReminderCardView: View {
    @State private var showRefillAlert = false
     
    let onTappedRefill: () -> Void?
+    let onTappedNotNow: () -> Void?
     
    var body: some View {
 
@@ -94,6 +95,7 @@ struct RefillReminderCardView: View {
                },
                onNotNow: {
                    // Nothing needed — dismiss() already handles closing
+                   onTappedNotNow()
                }
            )
        }

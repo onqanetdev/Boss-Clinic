@@ -14,12 +14,15 @@ struct HomeScreen: View {
     @StateObject private var dashboardVM = DashboardViewModel()
     
     @StateObject private var reminderTakenVM = ReminderTakenViewModel()
+    @StateObject private var requestRefillVM = RefillRequestViewModel()
     
     
     @State private var schedules: [TodaySchedule] = []
     @State var nextMedication: NextMedication?
     @State var refillReminder: [RefillReminder] = []
     
+    @State private var showSuccessAlert = false
+    @State private var successMessage = ""
     
     var body: some View {
         
@@ -89,7 +92,7 @@ struct HomeScreen: View {
             }
             
             // Loader
-            if dashboardVM.isLoading || reminderTakenVM.isLoading  {
+            if dashboardVM.isLoading || reminderTakenVM.isLoading ||  requestRefillVM.isLoading {
                 
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
@@ -146,6 +149,23 @@ struct HomeScreen: View {
 
             print(error)
         }
+        
+        .onChange(of: requestRefillVM.refillRequestResponse) { response in
+
+            guard let response else { return }
+
+                successMessage = response.message
+                showSuccessAlert = true
+
+
+            dashboardVM.fetchDashboard()
+        }
+        
+        .alert("Success", isPresented: $showSuccessAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(successMessage)
+        }
     }
     
     
@@ -155,7 +175,12 @@ struct HomeScreen: View {
             RefillReminderCardView(
                 medication: medication,
                 onTappedRefill: {
-                    print("Hellow")
+                    //print("Hellow")
+                    requestRefillVM.requestRefill(medicationID: medication.id, schedule: "yes")
+                },
+                
+                onTappedNotNow: {
+                    requestRefillVM.requestRefill(medicationID: medication.id, schedule: "no")
                 }
             )
         }
