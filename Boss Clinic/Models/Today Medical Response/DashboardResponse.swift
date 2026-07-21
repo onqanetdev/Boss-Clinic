@@ -73,13 +73,18 @@ struct TodaySchedule: Codable, Identifiable , Equatable{
 }
 
 // MARK: - Refill Reminder
-struct RefillReminder: Codable, Equatable {
+struct RefillReminder: Codable, Equatable, Identifiable {
+    let medicineId: String
     let medicineName: String
     let remainingStock: Int
     let daysLeft: Int
     let buttonText: String
+    
+    
+    var id: String { medicineId }
 
     enum CodingKeys: String, CodingKey {
+        case medicineId = "medication_id"
         case medicineName = "medicine_name"
         case remainingStock = "remaining_stock"
         case daysLeft = "days_left"

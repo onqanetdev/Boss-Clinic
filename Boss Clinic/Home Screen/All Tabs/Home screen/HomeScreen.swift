@@ -18,6 +18,7 @@ struct HomeScreen: View {
     
     @State private var schedules: [TodaySchedule] = []
     @State var nextMedication: NextMedication?
+    @State var refillReminder: [RefillReminder] = []
     
     
     var body: some View {
@@ -78,7 +79,7 @@ struct HomeScreen: View {
                         EmptyTodayScheduleView()
                     }
                     
-                    RefillReminderCardView()
+                    refillSection
                     
                     Spacer()
                     
@@ -88,7 +89,7 @@ struct HomeScreen: View {
             }
             
             // Loader
-            if dashboardVM.isLoading || reminderTakenVM.isLoading {
+            if dashboardVM.isLoading || reminderTakenVM.isLoading  {
                 
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
@@ -114,6 +115,8 @@ struct HomeScreen: View {
             schedules = response.data.todaySchedule
             
             nextMedication = response.data.nextMedication
+            
+            refillReminder = response.data.refillReminders
             
             if nextMedication != nil {
                 isScheduled = true
@@ -144,6 +147,20 @@ struct HomeScreen: View {
             print(error)
         }
     }
+    
+    
+    
+    private var refillSection: some View {
+        ForEach(refillReminder) { medication in
+            RefillReminderCardView(
+                medication: medication,
+                onTappedRefill: {
+                    print("Hellow")
+                }
+            )
+        }
+    }
+
 }
 
 #Preview {
