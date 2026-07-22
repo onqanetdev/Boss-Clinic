@@ -11,275 +11,276 @@ import SwiftUI
 
 struct ProfileScreen: View {
 
-   // Replace these with your real user model / view model
-    @State private var userName = "John Doe"
-    @State private var userEmail  = "john.doe@email.com"
+  // Replace these with your real user model / view model
+   @State private var userName = "John Doe"
+   @State private var userEmail  = "john.doe@email.com"
 
-   @State private var showMyProfile = false
-   @State private var showNotificationSettings = false
-   @State private var showReminderSettings = false
-   @State private var showHelpSupport = false
-   @State private var showPrivacyPolicy = false
+  @State private var showMyProfile = false
+  @State private var showNotificationSettings = false
+  @State private var showReminderSettings = false
+  @State private var showHelpSupport = false
+  @State private var showPrivacyPolicy = false
 
-   @State private var showLogoutConfirm = false
-   @State private var showTermsandConditions = false
-    
-   @State private var showDeleteAccount = false
-   @State private var showDeleteConfirmation = false
+  @State private var showLogoutConfirm = false
+  @State private var showTermsandConditions = false
 
-   @State private var showDeleteAccountWebView = false
-    
-   @StateObject private var profileVM = ProfileViewModel()
+  @State private var showDeleteAccountWebView = false
 
-   var body: some View {
-       
-       ZStack {
-           ScrollView(showsIndicators: false) {
-               VStack(alignment: .leading, spacing: 24) {
+  @StateObject private var profileVM = ProfileViewModel()
+  @StateObject private var logoutVM = LogoutViewModel()
 
-                   // MARK: Title
-                   Text("Profile")
-                       .font(.custom("Inter24pt-Bold", size: 28))
-                       .foregroundColor(.white)
-                       .padding(.top, 20)
+  var body: some View {
+      
+      ZStack {
+          ScrollView(showsIndicators: false) {
+              VStack(alignment: .leading, spacing: 24) {
 
-                   // MARK: Avatar + Name + Email
-                   HStack(spacing: 16) {
-                       ZStack {
-                           Circle()
-                               .fill(Color.white)
-                               .frame(width: 88, height: 88)
+                  // MARK: Title
+                  Text("Profile")
+                      .font(.custom("Inter24pt-Bold", size: 28))
+                      .foregroundColor(.white)
+                      .padding(.top, 20)
 
-                           Image(systemName: "person.fill")
-                               .resizable()
-                               .scaledToFit()
-                               .frame(width: 40, height: 40)
-                               .foregroundColor(.black)
-                       }
+                  // MARK: Avatar + Name + Email
+                  HStack(spacing: 16) {
+                      ZStack {
+                          Circle()
+                              .fill(Color.white)
+                              .frame(width: 88, height: 88)
 
-                       VStack(alignment: .leading, spacing: 4) {
-                           Text(userName)
-                               .font(.custom("Inter24pt-Bold", size: 22))
-                               .foregroundColor(.white)
+                          Image(systemName: "person.fill")
+                              .resizable()
+                              .scaledToFit()
+                              .frame(width: 40, height: 40)
+                              .foregroundColor(.black)
+                      }
 
-                           Text(userEmail)
-                               .font(.custom("Inter18pt-Regular", size: 15))
-                               .foregroundColor(Color.white.opacity(0.6))
-                       }
-                   }
-                   .padding(.bottom, 8)
+                      VStack(alignment: .leading, spacing: 4) {
+                          Text(userName)
+                              .font(.custom("Inter24pt-Bold", size: 22))
+                              .foregroundColor(.white)
 
-                   // MARK: Options
-                   VStack(spacing: 16) {
+                          Text(userEmail)
+                              .font(.custom("Inter18pt-Regular", size: 15))
+                              .foregroundColor(Color.white.opacity(0.6))
+                      }
+                  }
+                  .padding(.bottom, 8)
 
-                       ProfileRow(icon: .system("person"), title: "My Profile") {
-                           showMyProfile = true
-                       }
+                  // MARK: Options
+                  VStack(spacing: 16) {
 
-                       ProfileRow(icon: .system("bell"), title: "Notification Settings") {
-                           showNotificationSettings = true
-                       }
+                      ProfileRow(icon: .system("person"), title: "My Profile") {
+                          showMyProfile = true
+                      }
 
-                       ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Reminder Settings") {
-                           showReminderSettings = true
-                       }
+                      ProfileRow(icon: .system("bell"), title: "Notification Settings") {
+                          showNotificationSettings = true
+                      }
 
-                       ProfileRow(icon: .system("questionmark.circle"), title: "Help & Support") {
-                           showHelpSupport = true
-                       }
+                      ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Reminder Settings") {
+                          showReminderSettings = true
+                      }
 
-                       // MARK: Now using your asset catalog image — replace "privacy_policy" with your actual asset name
-                       ProfileRow(icon: .asset("privacy_policy"), title: "Privacy Policy") {
-                           showPrivacyPolicy = true
-                       }
-                       
-                       // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
-                       ProfileRow(icon: .system("questionmark.circle"), title: "Terms & Conditions") {
-                           showTermsandConditions = true
-                       }
+                      ProfileRow(icon: .system("questionmark.circle"), title: "Help & Support") {
+                          showHelpSupport = true
+                      }
 
-                       // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
-                       ProfileRow(icon: .asset("logout_icon"), title: "Log Out") {
-                           showLogoutConfirm = true
-                       }
-                       
-                       
-                       
-                       Divider()
-                           .background(Color.gray.opacity(0.3))
-                           .padding(.vertical, 10)
+                      // MARK: Now using your asset catalog image — replace "privacy_policy" with your actual asset name
+                      ProfileRow(icon: .asset("privacy_policy"), title: "Privacy Policy") {
+                          showPrivacyPolicy = true
+                      }
+                      
+                      // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
+                      ProfileRow(icon: .system("questionmark.circle"), title: "Terms & Conditions") {
+                          showTermsandConditions = true
+                      }
 
-                       ProfileRow(
-                           icon: .system("trash"),
-                           title: "Delete Account",
-                           titleColor: .red,
-                           iconColor: .red
-                       ) {
-                           //showDeleteConfirmation = true
-                           showDeleteAccountWebView = true
-                       }
-                       
-                       
-                   }
+                      // MARK: Now using your asset catalog image — replace "logout_icon" with your actual asset name
+                      ProfileRow(icon: .asset("logout_icon"), title: "Log Out") {
+                          showLogoutConfirm = true
+                      }
+                      
+                      
+                      
+                      Divider()
+                          .background(Color.gray.opacity(0.3))
+                          .padding(.vertical, 10)
 
-                   Spacer(minLength: 40)
-               }
-               .padding(.horizontal, 20)
-           }
-           
-           if profileVM.isLoading {
+                      ProfileRow(
+                          icon: .system("trash"),
+                          title: "Delete Account",
+                          titleColor: .red,
+                          iconColor: .red
+                      ) {
+                          showDeleteAccountWebView = true
+                      }
+                      
+                      
+                  }
 
-                       Color.black.opacity(0.4)
-                           .ignoresSafeArea()
-
-                       ProgressView()
-                           .progressViewStyle(.circular)
-                           .tint(.white)
-                           .scaleEffect(1.5)
-                   }
-   }//Highest View ZStack Ending
-       .onAppear {
-           profileVM.fetchProfile()
-       }
-
-
-       .onChange(of: profileVM.profileResponse) { response in
-           guard let response else { return }
-
-           userName = response.data.name
-           userEmail = response.data.email
-       }
-       .background(Color.black.ignoresSafeArea())
-       .navigationBarBackButtonHidden(true)
-       .navigationDestination(isPresented: $showMyProfile) {
-           MyProfileScreen(
-            name: userName,
-            gender: profileVM.profileResponse?.data.gender ?? " ",
-            bloodGroup: profileVM.profileResponse?.data.bloodGroup ?? " ",
-            height: profileVM.profileResponse?.data.height ?? " ",
-            weight: profileVM.profileResponse?.data.weight ?? " ",
-            emergencyContact: profileVM.profileResponse?.data.emergencyContact ?? " ",
-            medicalHistory: profileVM.profileResponse?.data.medicalHistory ?? " "
-           )
-       }
-       .navigationDestination(isPresented: $showNotificationSettings) {
-           NotificationSettingsScreen()
-           //NotificationScreen()
-//                      Text("Notification Settings")
-//                          .foregroundColor(.white)
-//                          .background(Color.black.ignoresSafeArea())
-       }
-       .navigationDestination(isPresented: $showReminderSettings) {
-           ReminderScreen()
-       }
-       .navigationDestination(isPresented: $showHelpSupport) {
-//           Text("Help & Support")
-//               .foregroundColor(.white)
-//               .background(Color.black.ignoresSafeArea())
-           ContactUsScreen()
-       }
-       .navigationDestination(isPresented: $showPrivacyPolicy) {
-           PrivacyScreen()
-       }
-       .navigationDestination(isPresented: $showTermsandConditions) {
-           TermsConditionScreen()
-       }
-       .navigationDestination(isPresented: $showDeleteAccountWebView) {
-           DeleteAccountScreen()
-       }
-
-       .alert("Log Out", isPresented: $showLogoutConfirm) {
-              Button("Cancel", role: .cancel) { }
-              Button("Log Out", role: .destructive) {
-                  // RootView is observing SessionManager and will switch
-                  // straight to LoginScreen once this runs.
-                  SessionManager.shared.logout()
+                  Spacer(minLength: 40)
               }
-          } message: {
-              Text("Are you sure you want to log out?")
+              .padding(.horizontal, 20)
           }
-       
-   }
+          
+          if profileVM.isLoading || logoutVM.isLoading {
+
+                      Color.black.opacity(0.4)
+                          .ignoresSafeArea()
+
+                      ProgressView()
+                          .progressViewStyle(.circular)
+                          .tint(.white)
+                          .scaleEffect(1.5)
+                  }
+  }//Highest View ZStack Ending
+      .onAppear {
+          profileVM.fetchProfile()
+      }
+
+
+      .onChange(of: profileVM.profileResponse) { response in
+          guard let response else { return }
+
+          userName = response.data.name
+          userEmail = response.data.email
+      }
+      .background(Color.black.ignoresSafeArea())
+      .navigationBarBackButtonHidden(true)
+      .navigationDestination(isPresented: $showMyProfile) {
+          MyProfileScreen(
+           name: userName,
+           gender: profileVM.profileResponse?.data.gender ?? " ",
+           bloodGroup: profileVM.profileResponse?.data.bloodGroup ?? " ",
+           height: profileVM.profileResponse?.data.height ?? " ",
+           weight: profileVM.profileResponse?.data.weight ?? " ",
+           emergencyContact: profileVM.profileResponse?.data.emergencyContact ?? " ",
+           medicalHistory: profileVM.profileResponse?.data.medicalHistory ?? " "
+          )
+      }
+      .navigationDestination(isPresented: $showNotificationSettings) {
+          NotificationSettingsScreen()
+      }
+      .navigationDestination(isPresented: $showReminderSettings) {
+          ReminderScreen()
+      }
+      .navigationDestination(isPresented: $showHelpSupport) {
+          ContactUsScreen()
+      }
+      .navigationDestination(isPresented: $showPrivacyPolicy) {
+          PrivacyScreen()
+      }
+      .navigationDestination(isPresented: $showTermsandConditions) {
+          TermsConditionScreen()
+      }
+      .navigationDestination(isPresented: $showDeleteAccountWebView) {
+          DeleteAccountScreen()
+      }
+      .alert("Log Out", isPresented: $showLogoutConfirm) {
+          Button("Cancel", role: .cancel) { }
+          Button("Log Out", role: .destructive) {
+              // Calls the /logout API; SessionManager clears the token and
+              // flips isLoggedIn regardless of the API outcome, so RootView
+              // switches to LoginScreen either way.
+              //SessionManager.shared.logout()
+              logoutVM.logoutUser()
+          }
+      } message: {
+          Text("Are you sure you want to log out?")
+      }
+      .alert(
+          "Error",
+          isPresented: Binding(
+              get: { logoutVM.errorMessage != nil },
+              set: { _ in logoutVM.errorMessage = nil }
+          )
+      ) {
+          Button("OK", role: .cancel) { }
+      } message: {
+          Text(logoutVM.errorMessage ?? "")
+      }
+
+  }
 }
 
 // MARK: - Icon source (SF Symbol vs. Asset Catalog image)
 
 private enum RowIcon {
-   case system(String)   // SF Symbol name
-   case asset(String)    // Asset catalog image name
+  case system(String)   // SF Symbol name
+  case asset(String)    // Asset catalog image name
 }
 
 // MARK: - Reusable row
 
 private struct ProfileRow: View {
 
-   let icon: RowIcon
-   let title: String
-   let action: () -> Void
-   let titleColor: Color
-   let iconColor: Color
-    
-    
-    init(
-        icon: RowIcon,
-        title: String,
-        titleColor: Color = .white,
-        iconColor: Color = .white,
-        action: @escaping () -> Void
-    ) {
-        self.icon = icon
-        self.title = title
-        self.titleColor = titleColor
-        self.iconColor = iconColor
-        self.action = action
-    }
-
-   var body: some View {
-       Button(action: action) {
-           HStack(spacing: 16) {
-               iconView
-                   .frame(width: 20, height: 20)
-                   .foregroundColor(iconColor)
-
-               Text(title)
-                   .font(.custom("Inter24pt-Regular", size: 16))
-                   .foregroundColor(titleColor)
-
-               Spacer()
-
-               Image(systemName: "chevron.right")
-                   .font(.system(size: 15, weight: .semibold))
-                   .foregroundColor(.white)
-           }
-           .padding(.vertical, 18)
-           .padding(.horizontal, 16)
-           .background(
-               RoundedRectangle(cornerRadius: 14)
-                   .stroke(Color.white.opacity(0.25), lineWidth: 1)
-           )
-       }
-       .buttonStyle(.plain)
+  let icon: RowIcon
+  let title: String
+  let action: () -> Void
+  let titleColor: Color
+  let iconColor: Color
+   
+   
+   init(
+       icon: RowIcon,
+       title: String,
+       titleColor: Color = .white,
+       iconColor: Color = .white,
+       action: @escaping () -> Void
+   ) {
+       self.icon = icon
+       self.title = title
+       self.titleColor = titleColor
+       self.iconColor = iconColor
+       self.action = action
    }
 
-   @ViewBuilder
-   private var iconView: some View {
-       switch icon {
-       case .system(let name):
-           Image(systemName: name)
-               .resizable()
-               .scaledToFit()
-       case .asset(let name):
-           Image(name)
-               .renderingMode(.template) // lets .foregroundColor tint the asset white
-               .resizable()
-               .scaledToFit()
-       }
-   }
+  var body: some View {
+      Button(action: action) {
+          HStack(spacing: 16) {
+              iconView
+                  .frame(width: 20, height: 20)
+                  .foregroundColor(iconColor)
+
+              Text(title)
+                  .font(.custom("Inter24pt-Regular", size: 16))
+                  .foregroundColor(titleColor)
+
+              Spacer()
+
+              Image(systemName: "chevron.right")
+                  .font(.system(size: 15, weight: .semibold))
+                  .foregroundColor(.white)
+          }
+          .padding(.vertical, 18)
+          .padding(.horizontal, 16)
+          .background(
+              RoundedRectangle(cornerRadius: 14)
+                  .stroke(Color.white.opacity(0.25), lineWidth: 1)
+          )
+      }
+      .buttonStyle(.plain)
+  }
+
+  @ViewBuilder
+  private var iconView: some View {
+      switch icon {
+      case .system(let name):
+          Image(systemName: name)
+              .resizable()
+              .scaledToFit()
+      case .asset(let name):
+          Image(name)
+              .renderingMode(.template) // lets .foregroundColor tint the asset white
+              .resizable()
+              .scaledToFit()
+      }
+  }
 }
 
 #Preview {
-   NavigationStack {
-       ProfileScreen()
-   }
+  NavigationStack {
+      ProfileScreen()
+  }
 }
-

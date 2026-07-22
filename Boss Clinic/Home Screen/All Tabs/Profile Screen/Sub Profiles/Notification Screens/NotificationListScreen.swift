@@ -97,16 +97,16 @@ struct NotificationListScreen: View {
 
             Spacer()
 
-            Button {
-
-                // Clear All API
-
-            } label: {
-
-                Text("Clear all")
-                    .font(.custom("Inter18pt-Regular", size: 18))
-                    .foregroundColor(.white.opacity(0.8))
-            }
+//            Button {
+//
+//                // Clear All API
+//
+//            } label: {
+//
+//                Text("Clear all")
+//                    .font(.custom("Inter18pt-Regular", size: 18))
+//                    .foregroundColor(.white.opacity(0.8))
+//            }
         }
     }
 }

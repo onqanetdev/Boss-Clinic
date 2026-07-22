@@ -22,48 +22,46 @@ struct FlipCardsView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
  
     var body: some View {
-        NavigationStack {
+        VStack {
             VStack {
-                VStack {
-                    TabView(selection: $currentPage) {
-                        ForEach(0..<pages.count, id: \.self) { index in
-                            pages[index]
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 600)
-                                .cornerRadius(10)
-                                .shadow(radius: 4)
-                                .rotation3DEffect(
-                                    Angle(degrees: angle),
-                                    axis: (x: 0, y: 1.0, z: 1)
-                                )
-                        }
-                    }.tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-                        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+                TabView(selection: $currentPage) {
+                    ForEach(0..<pages.count, id: \.self) { index in
+                        pages[index]
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 600)
+                            .cornerRadius(10)
+                            .shadow(radius: 4)
+                            .rotation3DEffect(
+                                Angle(degrees: angle),
+                                axis: (x: 0, y: 1.0, z: 1)
+                            )
+                    }
+                }.tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+                    .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
  
-                    PrimaryButton(title: "Get Started") {
+                PrimaryButton(title: "Get Started") {
+                    goToLogin()
+                }
+                .padding(.horizontal, 30)
+ 
+                HStack {
+                    Text("Already have an account?")
+                        .font(.custom("Inter18pt-Regular", size: 14))
+                        .foregroundColor(.white)
+ 
+                    Button("Log in") {
                         goToLogin()
                     }
-                    .padding(.horizontal, 30)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                }.padding(.top, 20)
  
-                    HStack {
-                        Text("Already have an account?")
-                            .font(.custom("Inter18pt-Regular", size: 14))
-                            .foregroundColor(.white)
- 
-                        Button("Log in") {
-                            goToLogin()
-                        }
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                    }.padding(.top, 20)
- 
-                }.frame(maxHeight: 600)
-            }.frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.black)
-                .navigationDestination(isPresented: $navigateToLogin) {
-                    LoginScreen()
-                }
-        }
+            }.frame(maxHeight: 600)
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.black)
+            .navigationDestination(isPresented: $navigateToLogin) {
+                LoginScreen()
+            }
     }
  
     private func goToLogin() {
@@ -73,9 +71,12 @@ struct FlipCardsView: View {
         navigateToLogin = true
     }
 }
+ 
 
 
 #Preview {
-    FlipCardsView()
+    NavigationStack {
+        FlipCardsView()
+    }
 }
 

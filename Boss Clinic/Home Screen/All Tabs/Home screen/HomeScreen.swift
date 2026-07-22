@@ -39,7 +39,7 @@ struct HomeScreen: View {
                         Spacer()
                         
                         Button {
-                            //print("Notification tapped")
+                            print("Notification tapped")
                             showNotificationScreen = true
                         } label: {
                             ZStack(alignment: .topTrailing) {
@@ -105,7 +105,7 @@ struct HomeScreen: View {
                     .tint(.white)
                     .scaleEffect(1.5)
             }
-            
+
             
             NavigationLink(
                 destination: NotificationListScreen(),

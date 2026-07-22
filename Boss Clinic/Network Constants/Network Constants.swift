@@ -24,6 +24,7 @@ enum APIEndpoint: String {
     case reminderTakenByTime = "reminders/take-by-time"
     case refillRequest = "refill-request"
     case notificationList = "notification-list"
+    case logout = "logout"
 }
 
 

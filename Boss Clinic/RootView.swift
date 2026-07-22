@@ -20,7 +20,9 @@ struct RootView: View {
     var body: some View {
         Group {
             if session.isLoggedIn {
-                MainTabView()
+                NavigationStack {
+                    MainTabView()
+                }
  
             } else if hasSeenOnboarding {
                 NavigationStack {
@@ -28,7 +30,9 @@ struct RootView: View {
                 }
  
             } else {
-                FlipCardsView()
+                NavigationStack {
+                    FlipCardsView()
+                }
             }
         }
         // Forces a full rebuild on login/logout, dismissing any leftover
@@ -49,7 +53,6 @@ struct RootView: View {
         }
     }
 }
- 
  
 #Preview {
     RootView()
