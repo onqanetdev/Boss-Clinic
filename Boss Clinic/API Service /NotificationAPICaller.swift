@@ -28,8 +28,11 @@ class NotificationAPICaller {
 
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = UserDefaults.standard.string(forKey: "authToken") {
+        if let token = UserDefaults.standard.string(forKey: "accessToken") {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            // Token is invalid/expired — clear it and kick the user back to login.
+            SessionManager.shared.logout()
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -80,6 +83,9 @@ class NotificationAPICaller {
                 }
 
             } else if httpResponse.statusCode == 401 {
+                // Token is invalid/expired — clear it and kick the user back to login.
+                SessionManager.shared.logout()
+                
 
                 DispatchQueue.main.async {
                     completion(.failure(.unauthorized))

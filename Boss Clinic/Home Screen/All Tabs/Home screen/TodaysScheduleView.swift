@@ -23,16 +23,16 @@ struct TodaysScheduleView: View {
 
                 Spacer()
 
-                if schedules.count > 3 {
-
-                    Button("View all") {
-
-                        print("Navigate")
-
-                    }
-                    .font(.custom("Inter18pt-Regular", size: 16))
-                    .foregroundColor(.white)
-                }
+//                if schedules.count > 3 {
+//
+//                    Button("View all") {
+//
+//                        print("Navigate")
+//
+//                    }
+//                    .font(.custom("Inter18pt-Regular", size: 16))
+//                    .foregroundColor(.white)
+//                }
             }
 
             .padding(.bottom, 20)

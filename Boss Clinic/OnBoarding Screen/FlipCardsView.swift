@@ -7,29 +7,29 @@
 
 import SwiftUI
 
+
 struct FlipCardsView: View {
     @State private var angle: Double = 0
-    //let images: [String] = ["sceneryOne","sceneryTwo", "sceneryThree", "sceneryFour"]
     let pages: [AnyView] = [
         AnyView(FirstOnboardingView()),
         AnyView(SecondOnboardingView()),
         AnyView(ThirdOnboardingView()),
-        ]
+    ]
     @State private var currentPage: Int = 0
-    
+ 
     @State private var navigateToLogin = false
-    
+ 
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+ 
     var body: some View {
-        //At Most VStack
         NavigationStack {
             VStack {
-                //2nd Most VStack
                 VStack {
                     TabView(selection: $currentPage) {
-                        ForEach(0..<pages.count,id: \.self) { index in
+                        ForEach(0..<pages.count, id: \.self) { index in
                             pages[index]
                                 .frame(maxWidth: .infinity)
-                                    .frame(height: 600)
+                                .frame(height: 600)
                                 .cornerRadius(10)
                                 .shadow(radius: 4)
                                 .rotation3DEffect(
@@ -39,36 +39,38 @@ struct FlipCardsView: View {
                         }
                     }.tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
                         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-                    
-                    
+ 
                     PrimaryButton(title: "Get Started") {
-                        navigateToLogin = true
-                        print("Button Tapped")
+                        goToLogin()
                     }
-                                .padding(.horizontal, 30)
-                    
+                    .padding(.horizontal, 30)
+ 
                     HStack {
                         Text("Already have an account?")
-                            //.font(.system(size: 16, weight: .regular))
                             .font(.custom("Inter18pt-Regular", size: 14))
                             .foregroundColor(.white)
-                        
+ 
                         Button("Log in") {
-                            //print("Tapped")
-                            navigateToLogin = true
-                            print("Button Tapped")
+                            goToLogin()
                         }
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                     }.padding(.top, 20)
-                    
+ 
                 }.frame(maxHeight: 600)
-            }.frame(maxWidth: .infinity,maxHeight: .infinity)
-            .background(Color.black)
-            .navigationDestination(isPresented: $navigateToLogin) {
-                LoginScreen()
-                        }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black)
+                .navigationDestination(isPresented: $navigateToLogin) {
+                    LoginScreen()
+                }
         }
+    }
+ 
+    private func goToLogin() {
+        // Any future app launch (or logout) skips onboarding and goes
+        // straight to LoginScreen via RootView.
+        hasSeenOnboarding = true
+        navigateToLogin = true
     }
 }
 

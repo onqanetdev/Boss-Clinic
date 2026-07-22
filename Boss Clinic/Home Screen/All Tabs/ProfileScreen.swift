@@ -141,19 +141,7 @@ struct ProfileScreen: View {
        .onAppear {
            profileVM.fetchProfile()
        }
-//       .alert(
-//           "Delete Account?",
-//           isPresented: $showDeleteConfirmation
-//       ) {
-//           Button("Cancel", role: .cancel) { }
-//
-//           Button("Delete", role: .destructive) {
-//               //print("Delete Account")
-//               showDeleteAccountWebView = true
-//           }
-//       } message: {
-//           Text("This action is permanent. Your account and all associated data will be permanently deleted and cannot be recovered.")
-//       }
+
 
        .onChange(of: profileVM.profileResponse) { response in
            guard let response else { return }
@@ -200,6 +188,17 @@ struct ProfileScreen: View {
            DeleteAccountScreen()
        }
 
+       .alert("Log Out", isPresented: $showLogoutConfirm) {
+              Button("Cancel", role: .cancel) { }
+              Button("Log Out", role: .destructive) {
+                  // RootView is observing SessionManager and will switch
+                  // straight to LoginScreen once this runs.
+                  SessionManager.shared.logout()
+              }
+          } message: {
+              Text("Are you sure you want to log out?")
+          }
+       
    }
 }
 

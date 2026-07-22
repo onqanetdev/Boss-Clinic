@@ -28,6 +28,8 @@ class NotificationSettingsUpdateAPICaller {
         }
 
         guard let accessToken = UserDefaults.standard.string(forKey: "accessToken") else {
+            // Token is invalid/expired — clear it and kick the user back to login.
+            SessionManager.shared.logout()
             completion(.failure(.validationError("Access Token not found.")))
             return
         }
@@ -107,6 +109,8 @@ class NotificationSettingsUpdateAPICaller {
             case 401:
 
                 DispatchQueue.main.async {
+                    // Token is invalid/expired — clear it and kick the user back to login.
+                    SessionManager.shared.logout()
                     completion(.failure(.validationError("Session expired. Please login again.")))
                 }
 

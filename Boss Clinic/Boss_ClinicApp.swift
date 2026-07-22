@@ -11,7 +11,6 @@ import FirebaseCore
 
 
 
-
 @main
 struct BossClinicApp: App {
  
@@ -21,7 +20,8 @@ struct BossClinicApp: App {
  
     var body: some Scene {
         WindowGroup {
-            FlipCardsView() // Replace with whatever your actual root view is
+            //FlipCardsView()
+            RootView()
                 .fullScreenCover(item: $notificationRouter.pendingDoseReminder) { reminder in
                     MedicationReminderView(
                         reminder: reminder,
