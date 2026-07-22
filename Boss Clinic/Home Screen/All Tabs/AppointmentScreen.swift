@@ -94,12 +94,16 @@ struct AppointmentScreen: View {
                 .background(Color.black.ignoresSafeArea())
         }
         .navigationDestination(item: $selectedMedication) { medication in
-            Text(medication.name)
-                .foregroundColor(.white)
-                .background(Color.black.ignoresSafeArea())
+            MedicationDetailScreen(medication: medication)
         }
         .onAppear {
             medicationVM.fetchMedicationList()
+            
+            if let accessToken = UserDefaults.standard.string(forKey: "accessToken") {
+                    print("✅ Access Token: \(accessToken)")
+                } else {
+                    print("❌ Access Token not found")
+                }
         }
         .onChange(of: medicationVM.medicationResponse) { response in
 

@@ -29,7 +29,7 @@ struct RefillAlertView: View {
                HStack {
                    Spacer()
                    Button {
-                       onNotNow()
+                       //onNotNow()
                        dismiss()
                    } label: {
                        Image(systemName: "xmark")
@@ -84,23 +84,6 @@ struct RefillAlertView: View {
                        )
                }
                .padding(.bottom, 14)
-
-               // MARK: Schedule a Consultation
-//               Button {
-//                   onScheduleConsultation()
-//                   dismiss()
-//               } label: {
-//                   Text("Schedule a Consultation")
-//                       .font(.custom("Inter18pt-SemiBold", size: 17))
-//                       .foregroundColor(.white)
-//                       .frame(maxWidth: .infinity)
-//                       .padding(.vertical, 16)
-//                       .background(
-//                           RoundedRectangle(cornerRadius: 14)
-//                               .stroke(Color.white.opacity(0.3), lineWidth: 1)
-//                       )
-//               }
-//               .padding(.bottom, 14)
 
                // MARK: Not Now
                Button {

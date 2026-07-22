@@ -90,7 +90,7 @@ struct MedicationLog: Codable, Hashable {
     let scheduledTime: String
     let actualTakenTime: String?
     let status: String
-    let differenceMinutes: Int
+    let differenceMinutes: Int?
     let notes: String?
     let takenBy: String?
     let skippedReason: String?

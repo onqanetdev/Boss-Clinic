@@ -101,23 +101,23 @@ struct NotificationSettingsScreen: View {
 
                     // MARK: Button
 
-                    Button {
-
-                        print("Send Test Notification")
-
-                    } label: {
-
-                        Text("Send Test Notification")
-                            .font(.custom("Inter18pt-Regular", size: 14))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 62)
-                            .background(Color.black)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 26)
-                                    .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-                            )
-                    }
+//                    Button {
+//
+//                        print("Send Test Notification")
+//
+//                    } label: {
+//
+//                        Text("Send Test Notification")
+//                            .font(.custom("Inter18pt-Regular", size: 14))
+//                            .foregroundColor(.white)
+//                            .frame(maxWidth: .infinity)
+//                            .frame(height: 62)
+//                            .background(Color.black)
+//                            .overlay(
+//                                RoundedRectangle(cornerRadius: 26)
+//                                    .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+//                            )
+//                    }
 
                     Spacer(minLength: 30)
                 }

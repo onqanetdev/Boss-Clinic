@@ -40,7 +40,7 @@ struct MyProfileScreen: View {
                     CustomTextField(
                         text: $name,
                         placeholder: "Enter your name",
-                        prefixImage: "person"
+                        prefixImage: "user"
                     )
 
 
