@@ -54,6 +54,10 @@ struct APIErrorResponse: Codable {
 }
 
 struct APIErrors: Codable {
+    let email: [String]?
+    let phone: [String]?
+    let name: [String]?
+    let password: [String]?
     let otp: [String]?
 }
 

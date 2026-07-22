@@ -24,6 +24,8 @@ struct HomeScreen: View {
     @State private var showSuccessAlert = false
     @State private var successMessage = ""
     
+    @State var showNotificationScreen = false
+    
     var body: some View {
         
         ZStack {
@@ -37,7 +39,8 @@ struct HomeScreen: View {
                         Spacer()
                         
                         Button {
-                            print("Notification tapped")
+                            //print("Notification tapped")
+                            showNotificationScreen = true
                         } label: {
                             ZStack(alignment: .topTrailing) {
                                 
@@ -103,6 +106,14 @@ struct HomeScreen: View {
                     .scaleEffect(1.5)
             }
             
+            
+            NavigationLink(
+                destination: NotificationListScreen(),
+                isActive: $showNotificationScreen
+            ) {
+                EmptyView()
+            }
+            .hidden()
         }
         .background(Color.black.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
@@ -121,13 +132,13 @@ struct HomeScreen: View {
             
             refillReminder = response.data.refillReminders
             
-            if nextMedication != nil {
-                isScheduled = true
-            } else {
+            if nextMedication == nil  {
                 isScheduled = false
+            } else {
+                isScheduled = true
             }
 
-            if schedules.count == 0 {
+            if schedules.count == 0 || schedules.isEmpty {
                 isTodaySchedule = false
             } else {
                 isTodaySchedule = true

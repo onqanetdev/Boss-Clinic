@@ -21,8 +21,8 @@ class RegisterViewModel: ObservableObject {
         name: "",
         email: "",
         phone: "",
-        password: "",
-        confirmPassword: ""
+        //password: "",
+        //confirmPassword: ""
     )
 
     // MARK: - Register API
@@ -36,8 +36,6 @@ class RegisterViewModel: ObservableObject {
             name: registerReqModel.name,
             email: registerReqModel.email,
             phone: registerReqModel.phone,
-            password: registerReqModel.password,
-            confirmPassword: registerReqModel.confirmPassword
         ) { [weak self] result in
 
             guard let self else { return }
@@ -67,3 +65,5 @@ class RegisterViewModel: ObservableObject {
         }
     }
 }
+
+

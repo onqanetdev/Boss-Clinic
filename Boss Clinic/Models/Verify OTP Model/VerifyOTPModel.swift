@@ -40,12 +40,12 @@ struct LoginUser: Codable, Identifiable, Equatable {
     let medicalHistory: String?
     let emailVerifiedAt: String?
     let isActive: Bool
-    let isProfileComplete: Bool
+   // let isProfileComplete: Bool?
     let lastLoginAt: String?
     let fcmToken: String?
-    let timezone: String
-    let language: String
-    let darkMode: Bool
+    //let timezone: String
+    //let language: String
+    //let darkMode: Bool
     let deletedAt: String?
     let createdAt: String
     let updatedAt: String
@@ -66,12 +66,12 @@ struct LoginUser: Codable, Identifiable, Equatable {
         case medicalHistory = "medical_history"
         case emailVerifiedAt = "email_verified_at"
         case isActive = "is_active"
-        case isProfileComplete = "is_profile_complete"
+        //case isProfileComplete = "is_profile_complete"
         case lastLoginAt = "last_login_at"
         case fcmToken = "fcm_token"
-        case timezone
-        case language
-        case darkMode = "dark_mode"
+        //case timezone
+        //case language
+        //case darkMode = "dark_mode"
         case deletedAt = "deleted_at"
         case createdAt = "created_at"
         case updatedAt = "updated_at"

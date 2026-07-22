@@ -13,7 +13,7 @@ struct RegisterReqModel: Codable {
     var name: String
     var email: String
     var phone: String
-    var password: String
-    var confirmPassword: String
+//    var password: String
+//    var confirmPassword: String
 }
 

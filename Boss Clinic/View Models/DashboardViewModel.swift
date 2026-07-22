@@ -34,7 +34,7 @@ final class DashboardViewModel: ObservableObject {
 
                 print("✅ Dashboard Loaded Successfully")
                 print("📄 Message: \(response.message)")
-                print("💊 Next Medication: \(response.data.nextMedication.name)")
+                print("💊 Next Medication: \(response.data.nextMedication?.name ?? "No Medication name Found")")
                 print("📅 Today's Schedule Count: \(response.data.todaySchedule.count)")
                 print("🔔 Refill Reminder Count: \(response.data.refillReminders.count)")
 

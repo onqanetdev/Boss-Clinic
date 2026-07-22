@@ -18,7 +18,7 @@ struct DashboardResponse: Codable, Equatable {
 
 // MARK: - Dashboard Data
 struct DashboardData: Codable, Equatable {
-    let nextMedication: NextMedication
+    let nextMedication: NextMedication?
     let todaySchedule: [TodaySchedule]
     let refillReminders: [RefillReminder]
     let summary: DashboardSummary
