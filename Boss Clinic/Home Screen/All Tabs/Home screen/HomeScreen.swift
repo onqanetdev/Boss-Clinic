@@ -25,6 +25,7 @@ struct HomeScreen: View {
     @State private var successMessage = ""
     
     @State var showNotificationScreen = false
+    @AppStorage("loginUserName") private var loginUserName = "Jhon"
     
     var body: some View {
         
@@ -33,7 +34,7 @@ struct HomeScreen: View {
                 VStack(spacing: 20) {
                     
                     HStack {
-                        Text("Hello, Jhon 👋🏽")
+                        Text("Hello, \(loginUserName) 👋🏽")
                             .font(.custom("Inter18pt-SemiBold", size: 20))
                             .foregroundColor(Color.white)
                         Spacer()

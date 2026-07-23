@@ -82,11 +82,26 @@ class FCMAPICaller {
 
                 do {
 
+//                    let response = try JSONDecoder().decode(FCMModel.self, from: data)
+//
+//                    DispatchQueue.main.async {
+//                        completion(.success(response))
+//                    }
+                    
                     let response = try JSONDecoder().decode(FCMModel.self, from: data)
 
-                    DispatchQueue.main.async {
-                        completion(.success(response))
-                    }
+                           print("✅ FCM Token saved successfully!")
+                           print("📨 Message: \(response.message)")
+                           print("👤 User ID: \(response.data.id)")
+                           print("📧 Email: \(response.data.email)")
+                           print("📱 Phone: \(response.data.phone)")
+                           print("🎭 Roles: \(response.data.roles)")
+                           print("🔐 Permissions: \(response.data.permissions)")
+                           print("🕒 Updated At: \(response.data.updatedAt)")
+
+                           DispatchQueue.main.async {
+                               completion(.success(response))
+                           }
 
                 } catch {
 

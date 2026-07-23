@@ -57,16 +57,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         print("Failed to register for remote notifications: \(error.localizedDescription)")
     }
 }
-
+ 
 // MARK: - MessagingDelegate
-
+ 
 extension AppDelegate: MessagingDelegate {
     
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let fcmToken else { return }
         print("FCM registration token: \(fcmToken)")
-        
-        //guard let fcmToken else { return }
         
         print("📱 FCM Token: \(fcmToken)")
         
@@ -77,9 +75,9 @@ extension AppDelegate: MessagingDelegate {
         
     }
 }
-
+ 
 // MARK: - UNUserNotificationCenterDelegate
-
+ 
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(
@@ -87,6 +85,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
+        // TEMP DEBUG — remove once sound issue is confirmed fixed.
+        print("📩 Full payload: \(notification.request.content.userInfo)")
+ 
         completionHandler([.banner, .list, .sound, .badge])
     }
     
@@ -103,9 +104,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         completionHandler()
     }
 }
-
+ 
 // MARK: - Token persistence
-
+ 
 /// Saves the FCM token to Firestore under the current user, so your
 /// Cloud Function knows which device to send refill reminders to.
 ///
@@ -149,4 +150,5 @@ final class NotificationTokenManager {
             }
     }
 }
+
 

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseMessaging
 
 
 
@@ -32,6 +33,8 @@ struct SignUpView: View {
     @StateObject private var registerVM = RegisterViewModel()
     @StateObject private var verifyOTPVM = VerifyOTPViewModel()
  
+    @StateObject private var fcmVM = FCMViewModel()
+    
     var body: some View {
         ZStack {
             VStack(alignment: .leading) {
@@ -152,13 +155,25 @@ struct SignUpView: View {
             }
         }
         .onChange(of: verifyOTPVM.isLoginSuccessful) { success in
-            if success {
-                if let token = verifyOTPVM.loginResponse?.data.token {
-                    UserDefaults.standard.set(token, forKey: "accessToken")
-                    print("✅ Token Saved: \(token)")
+            guard success else { return }
+
+            if let token = verifyOTPVM.loginResponse?.data.token {
+
+                UserDefaults.standard.set(token, forKey: "accessToken")
+                print("✅ Access Token Saved")
+
+                if let fcmToken = Messaging.messaging().fcmToken {
+
+                    print("📲 FCM Token: \(fcmToken)")
+                    fcmVM.saveFCMToken(fcmToken)
+
+                } else {
+
+                    print("⚠️ FCM Token not available.")
                 }
-                onSignUpSuccess()
             }
+
+            onSignUpSuccess()
         }
         .alert(
             "Error",
