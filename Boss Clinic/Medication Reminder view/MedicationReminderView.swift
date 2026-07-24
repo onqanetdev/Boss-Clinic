@@ -15,6 +15,8 @@ struct MedicationReminderView: View {
  
     @Environment(\.dismiss) private var dismiss
  
+    @StateObject private var reminderTakenVM = ReminderTakenViewModel()
+ 
     // Auto-dismiss countdown
     @State private var remainingSeconds: Int = 10 * 60 // 10 minutes
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -82,8 +84,7 @@ struct MedicationReminderView: View {
  
                 // MARK: Take Now
                 Button {
-                    onTakeNow()
-                    dismiss()
+                    markAsTaken()
                 } label: {
                     Text("Take Now")
                         .font(.custom("Inter18pt-SemiBold", size: 17))
@@ -95,6 +96,7 @@ struct MedicationReminderView: View {
                                 .fill(Color.white)
                         )
                 }
+                .disabled(reminderTakenVM.isLoading)
                 .padding(.bottom, 14)
  
                 // MARK: Snooze
@@ -115,6 +117,7 @@ struct MedicationReminderView: View {
                             .stroke(Color.white.opacity(0.3), lineWidth: 1)
                     )
                 }
+                .disabled(reminderTakenVM.isLoading)
                 .padding(.bottom, 20)
  
                 // MARK: Auto-dismiss countdown
@@ -130,6 +133,17 @@ struct MedicationReminderView: View {
                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
             .padding(.horizontal, 20)
+ 
+            // MARK: Loader
+            if reminderTakenVM.isLoading {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+ 
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .tint(.white)
+                    .scaleEffect(1.5)
+            }
         }
         .onReceive(timer) { _ in
             guard remainingSeconds > 0 else {
@@ -137,6 +151,23 @@ struct MedicationReminderView: View {
                 return
             }
             remainingSeconds -= 1
+        }
+        .onChange(of: reminderTakenVM.reminderTakenResponse) { response in
+            guard response != nil else { return }
+ 
+            onTakeNow()
+            dismiss()
+        }
+        .alert(
+            "Error",
+            isPresented: Binding(
+                get: { reminderTakenVM.errorMessage != nil },
+                set: { _ in reminderTakenVM.errorMessage = nil }
+            )
+        ) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(reminderTakenVM.errorMessage ?? "")
         }
     }
  
@@ -147,6 +178,19 @@ struct MedicationReminderView: View {
             return "\(minutes) min"
         }
         return "\(seconds)s"
+    }
+ 
+    private func markAsTaken() {
+ 
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+ 
+        reminderTakenVM.markReminderAsTaken(
+            medicationID: reminder.id,
+            time: reminder.scheduledTime,
+            scheduledDate: today
+        )
     }
 }
  
@@ -160,5 +204,3 @@ struct MedicationReminderView: View {
         )
     )
 }
-
-

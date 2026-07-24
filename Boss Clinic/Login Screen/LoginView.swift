@@ -105,6 +105,7 @@ struct LoginView: View {
             if let token = verifyOTPVM.loginResponse?.data.token {
 
                 UserDefaults.standard.set(token, forKey: "accessToken")
+                UserDefaults.standard.set(verifyOTPVM.loginResponse?.data.user.name, forKey: "loginUserName")
                 print("✅ Access Token Saved")
 
                 if let fcmToken = Messaging.messaging().fcmToken {
@@ -120,6 +121,17 @@ struct LoginView: View {
 
             onLoginSuccess()
         }
+        .alert(
+                    "Error",
+                    isPresented: Binding(
+                        get: { loginVM.errorMessage != nil },
+                        set: { _ in loginVM.errorMessage = nil }
+                    )
+                ) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text(loginVM.errorMessage ?? "")
+                }
         .alert(
             "Error",
             isPresented: Binding(

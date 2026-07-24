@@ -90,7 +90,7 @@ struct RefillAlertView: View {
                    onNotNow()
                    dismiss()
                } label: {
-                   Text("Not Now")
+                   Text("Consult Now")
                        .font(.custom("Inter18pt-SemiBold", size: 17))
                        .foregroundColor(.white)
                        .frame(maxWidth: .infinity)

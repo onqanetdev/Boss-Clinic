@@ -35,6 +35,7 @@ struct SignUpView: View {
  
     @StateObject private var fcmVM = FCMViewModel()
     
+    
     var body: some View {
         ZStack {
             VStack(alignment: .leading) {
@@ -160,6 +161,7 @@ struct SignUpView: View {
             if let token = verifyOTPVM.loginResponse?.data.token {
 
                 UserDefaults.standard.set(token, forKey: "accessToken")
+                UserDefaults.standard.set(verifyOTPVM.loginResponse?.data.user.name, forKey: "loginUserName")
                 print("✅ Access Token Saved")
 
                 if let fcmToken = Messaging.messaging().fcmToken {
