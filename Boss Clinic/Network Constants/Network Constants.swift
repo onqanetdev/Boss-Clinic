@@ -25,6 +25,8 @@ enum APIEndpoint: String {
     case refillRequest = "refill-request"
     case notificationList = "notification-list"
     case logout = "logout"
+    case notificationCount = "count-notification"
+    case readNotification = "read-notification"
 }
 
 

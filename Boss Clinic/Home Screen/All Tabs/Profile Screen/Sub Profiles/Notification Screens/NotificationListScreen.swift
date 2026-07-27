@@ -12,6 +12,7 @@ struct NotificationListScreen: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var notificationVM = NotificationViewModel()
+    @StateObject private var notificationReadVM = NotificationReadViewModel()
 
     @State private var notifications: [NotificationItem] = []
 
@@ -44,7 +45,12 @@ struct NotificationListScreen: View {
 
                             ForEach(notifications) { notification in
 
-                                NotificationRowView(notification: notification)
+                                NotificationRowView(notification: notification) {
+
+                                    notificationReadVM.markNotificationAsRead(
+                                        notificationID: notification.id
+                                    )
+                                }
                             }
                         }
                         .padding(.bottom, 20)
@@ -54,7 +60,7 @@ struct NotificationListScreen: View {
             .padding(.horizontal)
             .padding(.top, 10)
 
-            if notificationVM.isLoading {
+            if notificationVM.isLoading || notificationReadVM.isLoading {
 
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
@@ -73,6 +79,21 @@ struct NotificationListScreen: View {
             guard let response else { return }
 
             notifications = response.data ?? []
+        }
+        
+        .onChange(of: notificationReadVM.notificationReadResponse) { response in
+
+            guard let response else { return }
+
+            print(response.message)
+
+            notificationVM.fetchNotifications()
+        }
+        .onChange(of: notificationReadVM.errorMessage) { error in
+
+            guard let error else { return }
+
+            print(error)
         }
     }
 
@@ -96,18 +117,8 @@ struct NotificationListScreen: View {
                 .foregroundColor(.white)
 
             Spacer()
-
-//            Button {
-//
-//                // Clear All API
-//
-//            } label: {
-//
-//                Text("Clear all")
-//                    .font(.custom("Inter18pt-Regular", size: 18))
-//                    .foregroundColor(.white.opacity(0.8))
-//            }
         }
     }
 }
+
 

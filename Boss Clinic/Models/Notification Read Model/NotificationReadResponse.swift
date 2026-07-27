@@ -1,35 +1,35 @@
 //
-//  NotificationResponse.swift
+//  NotificationReadResponse.swift
 //  Boss Clinic
 //
-//  Created by Faizan Khan on 21/07/26.
+//  Created by Faizan Khan on 27/07/26.
 //
 
 import Foundation
 
 
-struct NotificationResponse: Codable, Equatable {
+
+struct NotificationReadResponse: Codable, Equatable {
     let status: Int
     let message: String
-    let data: [NotificationItem]?
+    let data: NotificationReadData
 }
 
-// MARK: - Notification Item
-struct NotificationItem: Codable, Equatable, Identifiable {
+// MARK: - Notification Data
 
+struct NotificationReadData: Codable, Equatable {
     let id: String
     let userId: String
     let type: String
     let title: String
     let message: String
-    let data: NotificationData
+    let data: NotificationReferenceData
     let isRead: Bool
     let readAt: String?
     let notificationCategory: String
     let actionURL: String?
     let createdAt: String
     let updatedAt: String
-    let datetime: String
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -44,12 +44,12 @@ struct NotificationItem: Codable, Equatable, Identifiable {
         case actionURL = "action_url"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
-        case datetime
     }
 }
 
-// MARK: - Notification Data
-struct NotificationData: Codable, Equatable {
+// MARK: - Reference Data
+
+struct NotificationReferenceData: Codable, Equatable {
 
     let medicationLogId: String
     let medicationId: String

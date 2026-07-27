@@ -16,6 +16,7 @@ struct HomeScreen: View {
    
    @StateObject private var reminderTakenVM = ReminderTakenViewModel()
    @StateObject private var requestRefillVM = RefillRequestViewModel()
+   @StateObject private var notificationCountVM = NotificationCountViewModel()
    
    
    @State private var schedules: [TodaySchedule] = []
@@ -24,6 +25,8 @@ struct HomeScreen: View {
    
    @State private var showSuccessAlert = false
    @State private var successMessage = ""
+    
+    @State private var notificationCount = 0
    
    @State var showNotificationScreen = false
    @AppStorage("loginUserName") private var loginUserName = "Jhon"
@@ -50,10 +53,21 @@ struct HomeScreen: View {
                                    .font(.system(size: 22))
                                    .foregroundColor(.white)
                                
-                               Circle()
-                                   .fill(Color.red)
-                                   .frame(width: 10, height: 10)
-                                   .offset(x: -2, y: -3)
+//                               Circle()
+//                                   .fill(Color.red)
+//                                   .frame(width: 10, height: 10)
+//                                   .offset(x: -2, y: -3)
+                               
+                               if notificationCount > 0 {
+
+                                   Text("\(notificationCount)")
+                                       .font(.system(size: 10, weight: .bold))
+                                       .foregroundColor(.white)
+                                       .frame(minWidth: 18, minHeight: 18)
+                                       .background(Color.red)
+                                       .clipShape(Circle())
+                                       .offset(x: 6, y: -6)
+                               }
                            }
                        }
                    }
@@ -125,6 +139,7 @@ struct HomeScreen: View {
        .onAppear {
 
            dashboardVM.fetchDashboard()
+           notificationCountVM.fetchNotificationCount()
        }
        
        .onChange(of: dashboardVM.dashboardResponse) { response in
@@ -176,6 +191,12 @@ struct HomeScreen: View {
 
            dashboardVM.fetchDashboard()
        }
+       .onChange(of: notificationCountVM.notificationCountResponse) { response in
+
+           guard let response else { return }
+
+           notificationCount = response.notificationCount
+       }
        
        .alert("Success", isPresented: $showSuccessAlert) {
            Button("OK", role: .cancel) { }
@@ -210,6 +231,8 @@ struct HomeScreen: View {
        await withCheckedContinuation { continuation in
 
            dashboardVM.fetchDashboard()
+
+           notificationCountVM.fetchNotificationCount()
 
            // dashboardVM.isLoading flips to false once the request
            // completes (success or failure) — poll it briefly rather
