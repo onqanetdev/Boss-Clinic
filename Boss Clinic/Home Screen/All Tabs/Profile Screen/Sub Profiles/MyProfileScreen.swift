@@ -60,13 +60,7 @@ struct MyProfileScreen: View {
                     } label: {
 
                         HStack {
-
-                            Image("gender")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 24, height: 24)
-
-                            Text(gender.isEmpty ? "Select Gender" : gender)
+                            Text(gender.isEmpty ? "Male/Female/Other" : gender)
                                 .foregroundColor(gender.isEmpty ? .gray : .white)
                                 .font(.custom("Inter18pt-Regular", size: 16))
 
@@ -86,16 +80,17 @@ struct MyProfileScreen: View {
                     
 
                 
-                    Text(dateOfBirth == nil ? "Select Date of Birth" : displayDate)
+                    Text( "Select Date of Birth")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
 
                     HStack(spacing: 16) {
 
-                        Image("calendar")
+                        Image(systemName: "calendar")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 24, height: 24)
+                            .foregroundColor(Color.gray)
 
                         DatePicker(
                             "",
@@ -157,12 +152,6 @@ struct MyProfileScreen: View {
                     } label: {
 
                         HStack(spacing: 16) {
-
-                            Image("blood_group")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 24, height: 24)
-
                             Text(bloodGroup.isEmpty ? "Select Blood Group" : bloodGroup)
                                 .font(.custom("Inter18pt-Regular", size: 16))
                                 .foregroundColor(bloodGroup.isEmpty ? .gray : .white)
@@ -181,28 +170,20 @@ struct MyProfileScreen: View {
                         )
                     }
                     
-                    
-                    
 
-                    Text("Height")
+                    Text("Height(cm)")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
 
-                    CustomTextField(
-                        text: $height,
-                        placeholder: "Enter height",
-                        prefixImage: "height"
-                    )
-
-                    Text("Weight")
+                    
+                    CustomtextFieldForText(text: $height, placeholder: "Enter height")
+                    
+                    Text("Weight(kg)")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
 
-                    CustomTextField(
-                        text: $weight,
-                        placeholder: "Enter weight",
-                        prefixImage: "weight"
-                    )
+                    
+                    CustomtextFieldForText(text: $weight, placeholder: "Enter weight")
 
                     Text("Emergency Contact")
                         .font(.custom("Inter18pt-SemiBold", size: 16))

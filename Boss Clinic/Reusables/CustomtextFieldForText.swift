@@ -1,17 +1,18 @@
 //
-//  CustomTextField.swift
+//  CustomtextFieldForText.swift
 //  Boss Clinic
 //
-//  Created by Onqanet on 26/06/26.
+//  Created by Faizan Khan on 28/07/26.
 //
 
+import Foundation
 import SwiftUI
 
-struct CustomTextField: View {
+struct CustomtextFieldForText: View {
     @Binding var text: String
 
     let placeholder: String
-    let prefixImage: String
+    //let prefixImage: String
 
     var keyboardType: UIKeyboardType = .default
     var textContentType: UITextContentType? = nil
@@ -20,13 +21,6 @@ struct CustomTextField: View {
 
     var body: some View {
         HStack(spacing: 16) {
-
-            Image(prefixImage)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 24, height: 24)
-                .foregroundColor(.gray)
-
             TextField(
                 "Example",
                 text: $text,
@@ -50,29 +44,3 @@ struct CustomTextField: View {
         )
     }
 }
-
-#Preview {
-    PreviewWrapper()
-}
-
-
-private struct PreviewWrapper: View {
-    @State private var email = ""
-
-    var body: some View {
-        ZStack {
-            Color.black
-                .ignoresSafeArea()
-
-            CustomTextField(
-                text: $email,
-                placeholder: "Enter your email",
-                prefixImage: "emailIcon" // Replace with your asset name
-            )
-            .padding(.horizontal, 20)
-        }
-    }
-}
-
-
-

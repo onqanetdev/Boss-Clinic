@@ -151,12 +151,12 @@ struct ProfileScreen: View {
       .navigationDestination(isPresented: $showMyProfile) {
           MyProfileScreen(
            name: userName,
-           gender: profileVM.profileResponse?.data.gender ?? " ",
-           bloodGroup: profileVM.profileResponse?.data.bloodGroup ?? " ",
-           height: profileVM.profileResponse?.data.height ?? " ",
-           weight: profileVM.profileResponse?.data.weight ?? " ",
-           emergencyContact: profileVM.profileResponse?.data.emergencyContact ?? " ",
-           medicalHistory: profileVM.profileResponse?.data.medicalHistory ?? " "
+           gender: profileVM.profileResponse?.data.gender ?? "",
+           bloodGroup: profileVM.profileResponse?.data.bloodGroup ?? "",
+           height: profileVM.profileResponse?.data.height ?? "",
+           weight: profileVM.profileResponse?.data.weight ?? "",
+           emergencyContact: profileVM.profileResponse?.data.phone ?? "",
+           medicalHistory: profileVM.profileResponse?.data.medicalHistory ?? ""
           )
       }
       .navigationDestination(isPresented: $showNotificationSettings) {
