@@ -76,13 +76,9 @@ struct AppointmentScreen: View {
             
             if medicationVM.isLoading {
 
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(.white)
-                    .scaleEffect(1.5)
+                
+                MedicationSkeletonScreen()
+                
             }
             
         }
@@ -172,7 +168,7 @@ private struct MedicationRow: View {
                         .font(.custom("Inter18pt-SemiBold", size: 14))
                         .foregroundColor(.white)
  
-                    Text(medication.dose + "" + medication.medicineType + "•" + medication.frequency)
+                    Text(medication.dose + "" + medication.medicineType + "•" + (medication.frequency ?? ""))
                         .font(.custom("Inter18pt-Regular", size: 13))
                         .foregroundColor(Color.white.opacity(0.5))
                 }
@@ -194,5 +190,6 @@ private struct MedicationRow: View {
         AppointmentScreen()
     }
 }
+
 
 

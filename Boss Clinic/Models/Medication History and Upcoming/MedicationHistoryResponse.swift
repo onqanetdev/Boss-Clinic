@@ -81,7 +81,7 @@ struct MedicationData: Codable, Identifiable, Equatable {
     let refillThreshold: Int
     let remainingStock: Int
     let totalDayStock: Int
-    let takenDayStock: Int
+    let takenDayStock: Int?
     let isRefillReminderEnabled: Bool
     let status: String
     let createdAt: String
@@ -136,3 +136,4 @@ struct PaginationMeta: Codable, Equatable {
         case total
     }
 }
+

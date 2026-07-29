@@ -127,7 +127,7 @@ private extension MedicationDetailScreen {
 
             sectionTitle("Medication")
 
-            infoRow("Frequency", medication.frequency)
+            infoRow("Frequency", medication.frequency ?? "")
 
             infoRow("Start Date", medication.startDate)
 

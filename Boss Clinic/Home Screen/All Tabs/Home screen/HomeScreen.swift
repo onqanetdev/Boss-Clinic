@@ -116,13 +116,16 @@ struct HomeScreen: View {
            // Loader
            if dashboardVM.isLoading || reminderTakenVM.isLoading ||  requestRefillVM.isLoading {
                
-               Color.black.opacity(0.4)
-                   .ignoresSafeArea()
+//               Color.black.opacity(0.4)
+//                   .ignoresSafeArea()
+//               
+//               ProgressView()
+//                   .progressViewStyle(.circular)
+//                   .tint(.white)
+//                   .scaleEffect(1.5)
                
-               ProgressView()
-                   .progressViewStyle(.circular)
-                   .tint(.white)
-                   .scaleEffect(1.5)
+               
+               HomeSkeletonScreen()
            }
 
            

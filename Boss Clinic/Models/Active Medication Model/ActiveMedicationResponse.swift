@@ -23,7 +23,7 @@ struct ActiveMedication: Codable,Hashable {
     let medicineType: String
     let strength: String
     let dose: String
-    let frequency: String
+    let frequency: String?
     let time: [String]
     let durationDays: Int?
     let startDate: String
