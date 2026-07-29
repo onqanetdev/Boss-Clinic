@@ -23,12 +23,8 @@ class EditProfileViewModel: ObservableObject {
     func updateProfile(
         name: String,
         gender: String,
-        dateOfBirth: String,
-        bloodGroup: String,
-        height: Double,
-        weight: Double,
-        emergencyContact: String,
-        medicalHistory: String
+        phoneReceived: String,
+        address: String
     ) {
 
         isLoading = true
@@ -38,12 +34,9 @@ class EditProfileViewModel: ObservableObject {
         EditProfileAPICaller.shared.updateProfile(
             name: name,
             gender: gender,
-            dateOfBirth: dateOfBirth,
-            bloodGroup: bloodGroup,
-            height: height,
-            weight: weight,
-            emergencyContact: emergencyContact,
-            medicalHistory: medicalHistory
+            address: address,
+            phone: phoneReceived
+            
         ) { [weak self] result in
 
             guard let self = self else { return }
@@ -75,3 +68,5 @@ class EditProfileViewModel: ObservableObject {
         }
     }
 }
+
+

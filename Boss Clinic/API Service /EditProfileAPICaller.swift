@@ -17,12 +17,8 @@ class EditProfileAPICaller {
    func updateProfile(
        name: String,
        gender: String,
-       dateOfBirth: String,
-       bloodGroup: String,
-       height: Double,
-       weight: Double,
-       emergencyContact: String,
-       medicalHistory: String,
+       address: String,
+       phone: String,
        completion: @escaping (Result<ProfileEditModel, NetworkError>) -> Void
    ) {
 
@@ -48,12 +44,8 @@ class EditProfileAPICaller {
        let body: [String: Any] = [
            "name": name,
            "gender": gender,
-           "date_of_birth": dateOfBirth,
-           "blood_group": bloodGroup,
-           "height": Double(height) ?? 0.0,
-           "weight": Double(weight) ?? 0.0,
-           "emergency_contact": emergencyContact,
-           "medical_history": medicalHistory
+           "phone": phone,
+           "address": address
        ]
 
        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -136,3 +128,5 @@ class EditProfileAPICaller {
        }.resume()
    }
 }
+
+

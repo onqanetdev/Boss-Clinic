@@ -126,13 +126,16 @@ struct ProfileScreen: View {
           
           if profileVM.isLoading || logoutVM.isLoading {
 
-                      Color.black.opacity(0.4)
-                          .ignoresSafeArea()
-
-                      ProgressView()
-                          .progressViewStyle(.circular)
-                          .tint(.white)
-                          .scaleEffect(1.5)
+//                      Color.black.opacity(0.4)
+//                          .ignoresSafeArea()
+//
+//                      ProgressView()
+//                          .progressViewStyle(.circular)
+//                          .tint(.white)
+//                          .scaleEffect(1.5)
+              
+              
+              MyProfileSkeletonScreen()
                   }
   }//Highest View ZStack Ending
       .onAppear {
@@ -152,11 +155,9 @@ struct ProfileScreen: View {
           MyProfileScreen(
            name: userName,
            gender: profileVM.profileResponse?.data.gender ?? "",
-           bloodGroup: profileVM.profileResponse?.data.bloodGroup ?? "",
-           height: profileVM.profileResponse?.data.height ?? "",
-           weight: profileVM.profileResponse?.data.weight ?? "",
            emergencyContact: profileVM.profileResponse?.data.phone ?? "",
-           medicalHistory: profileVM.profileResponse?.data.medicalHistory ?? ""
+           emailId: userEmail,
+           selectedAddress: profileVM.profileResponse?.data.address ?? "",
           )
       }
       .navigationDestination(isPresented: $showNotificationSettings) {

@@ -28,6 +28,7 @@ struct ProfileEditData: Codable, Identifiable, Equatable {
     let avatar: String?
     let gender: String?
     let dateOfBirth: String?
+    let address: String?
     let bloodGroup: String?
     let height: String?
     let weight: String?
@@ -52,6 +53,7 @@ struct ProfileEditData: Codable, Identifiable, Equatable {
         case avatar
         case gender
         case dateOfBirth = "date_of_birth"
+        case address
         case bloodGroup = "blood_group"
         case height
         case weight
@@ -68,4 +70,3 @@ struct ProfileEditData: Codable, Identifiable, Equatable {
         case updatedAt = "updated_at"
     }
 }
-

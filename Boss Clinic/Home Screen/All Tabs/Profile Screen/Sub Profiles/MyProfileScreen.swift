@@ -18,12 +18,15 @@ struct MyProfileScreen: View {
     @State var emergencyContact = ""
     @State var medicalHistory = ""
     
+    @State var emailId = ""
     
     @State private var dateOfBirth = Date()
     @StateObject private var editProfileVM = EditProfileViewModel()
     @State private var showSuccessAlert = false
     @State private var dateSelected = false
 
+    @State var selectedAddress = ""
+    
     var body: some View {
 
         
@@ -44,148 +47,45 @@ struct MyProfileScreen: View {
                     )
 
 
+                    
+                    Text("Email")
+                        .font(.custom("Inter18pt-SemiBold", size: 16))
+                        .foregroundColor(.white)
+
+                    CustomTextField(
+                        text: $emailId,
+                        placeholder: "Enter your email",
+                        prefixImage: "mailbox"
+                    )
+
+                   //MARK: Gender Selection
+                    
+                    
+                    
                     Text("Gender")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
 
-                    Menu {
-                        Button("Male") {
-                            gender = "Male"
-                        }
-
-                        Button("Female") {
-                            gender = "Female"
-                        }
-
-                    } label: {
-
-                        HStack {
-                            Text(gender.isEmpty ? "Male/Female/Other" : gender)
-                                .foregroundColor(gender.isEmpty ? .gray : .white)
-                                .font(.custom("Inter18pt-Regular", size: 16))
-
-                            Spacer()
-
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.gray)
-                        }
-                        .padding(.horizontal, 20)
-                        .frame(height: 64)
-                        .background(Color.black)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.gray.opacity(0.7), lineWidth: 1)
-                        )
-                    }
-                    
-
-                
-                    Text( "Select Date of Birth")
-                        .font(.custom("Inter18pt-SemiBold", size: 16))
-                        .foregroundColor(.white)
-
-                    HStack(spacing: 16) {
-
-                        Image(systemName: "calendar")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(Color.gray)
-
-                        DatePicker(
-                            "",
-                            selection: $dateOfBirth,
-                            displayedComponents: .date
-                        )
-                        .labelsHidden()
-                        .datePickerStyle(.compact)
-                        .colorScheme(.dark)
-
-                        Spacer()
-                    }
-                    .padding(.horizontal, 20)
-                    .frame(height: 64)
-                    .background(Color.black)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.gray.opacity(0.7), lineWidth: 1)
+                    CustomDropdown(
+                        selection: $gender,
+                        placeholder: "Male/Female/Other",
+                        options: ["Male", "Female", "Other"]
                     )
-                     
-                    Text("Blood Group")
+
+                    
+                
+                    Text("Address")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
 
-                    Menu {
-
-                        Button("A+") {
-                            bloodGroup = "A+"
-                        }
-
-                        Button("A-") {
-                            bloodGroup = "A-"
-                        }
-
-                        Button("B+") {
-                            bloodGroup = "B+"
-                        }
-
-                        Button("B-") {
-                            bloodGroup = "B-"
-                        }
-
-                        Button("AB+") {
-                            bloodGroup = "AB+"
-                        }
-
-                        Button("AB-") {
-                            bloodGroup = "AB-"
-                        }
-
-                        Button("O+") {
-                            bloodGroup = "O+"
-                        }
-
-                        Button("O-") {
-                            bloodGroup = "O-"
-                        }
-
-                    } label: {
-
-                        HStack(spacing: 16) {
-                            Text(bloodGroup.isEmpty ? "Select Blood Group" : bloodGroup)
-                                .font(.custom("Inter18pt-Regular", size: 16))
-                                .foregroundColor(bloodGroup.isEmpty ? .gray : .white)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.gray)
-                        }
-                        .padding(.horizontal, 20)
-                        .frame(height: 64)
-                        .background(Color.black)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.gray.opacity(0.7), lineWidth: 1)
-                        )
-                    }
+                    CustomDropdown(
+                        selection: $selectedAddress,
+                        placeholder: "Select clinic",
+                        options: ["Subiaco-Clinic-WA", "Bondi-Clinic-NSW"]
+                    )
                     
-
-                    Text("Height(cm)")
-                        .font(.custom("Inter18pt-SemiBold", size: 16))
-                        .foregroundColor(.white)
-
                     
-                    CustomtextFieldForText(text: $height, placeholder: "Enter height")
-                    
-                    Text("Weight(kg)")
-                        .font(.custom("Inter18pt-SemiBold", size: 16))
-                        .foregroundColor(.white)
-
-                    
-                    CustomtextFieldForText(text: $weight, placeholder: "Enter weight")
-
-                    Text("Emergency Contact")
+                    Text("Phone")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
 
@@ -196,30 +96,6 @@ struct MyProfileScreen: View {
                         keyboardType: .phonePad
                     )
 
-                    Text("Medical History")
-                        .font(.custom("Inter18pt-SemiBold", size: 16))
-                        .foregroundColor(.white)
-
-                    ZStack(alignment: .topLeading) {
-
-                        if medicalHistory.isEmpty {
-                            Text("Enter medical history")
-                                .foregroundColor(.gray)
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 16)
-                        }
-
-                        TextEditor(text: $medicalHistory)
-                            .frame(height: 120)
-                            .padding(8)
-                            .foregroundColor(.white)
-                            .scrollContentBackground(.hidden)
-                    }
-                    .background(Color.black)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.gray.opacity(0.7), lineWidth: 1)
-                    )
 
                     PrimaryButton(title: "Save") {
                         //print("Hello")
@@ -227,12 +103,8 @@ struct MyProfileScreen: View {
                         editProfileVM.updateProfile(
                                 name: name,
                                 gender: gender.lowercased(),
-                                dateOfBirth: formattedDate,
-                                bloodGroup: bloodGroup,
-                                height: Double(height) ?? 0.0,
-                                weight: Double(weight) ?? 0.0,
-                                emergencyContact: emergencyContact,
-                                medicalHistory: medicalHistory
+                                phoneReceived: emergencyContact,
+                                address: selectedAddress.lowercased()
                             )
                         
                     }
