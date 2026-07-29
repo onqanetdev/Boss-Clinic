@@ -167,8 +167,10 @@ private struct MedicationRow: View {
                     Text(medication.name)
                         .font(.custom("Inter18pt-SemiBold", size: 14))
                         .foregroundColor(.white)
+                    
+                    let subtitle = "\(medication.dose ?? "") \(medication.medicineType ?? "") • \(medication.frequency ?? "")"
  
-                    Text(medication.dose + "" + medication.medicineType + "•" + (medication.frequency ?? ""))
+                    Text(subtitle)
                         .font(.custom("Inter18pt-Regular", size: 13))
                         .foregroundColor(Color.white.opacity(0.5))
                 }

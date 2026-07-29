@@ -127,12 +127,15 @@ struct NotificationScreen: View {
             
             if viewModel.isLoading {
 
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1.4)
+//                Color.black.opacity(0.4)
+//                    .ignoresSafeArea()
+//
+//                ProgressView()
+//                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+//                    .scaleEffect(1.4)
+                
+                ReminderSkeletonScreen()
+                
             }
             
         }

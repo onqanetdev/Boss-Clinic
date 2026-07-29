@@ -94,7 +94,7 @@ private extension MedicationDetailScreen {
                         .font(.custom("Inter18pt-SemiBold", size: 22))
                         .foregroundColor(.white)
 
-                    Text(medication.medicineType.capitalized)
+                    Text((medication.medicineType ?? "").capitalized)
                         .foregroundColor(.gray)
                 }
 
@@ -105,11 +105,11 @@ private extension MedicationDetailScreen {
 
             HStack {
 
-                detailItem(title: "Strength", value: medication.strength)
+                detailItem(title: "Strength", value: medication.strength ?? "")
 
                 Spacer()
 
-                detailItem(title: "Dose", value: medication.dose)
+                detailItem(title: "Dose", value: medication.dose ?? "")
             }
         }
         .padding()
@@ -129,9 +129,9 @@ private extension MedicationDetailScreen {
 
             infoRow("Frequency", medication.frequency ?? "")
 
-            infoRow("Start Date", medication.startDate)
+            infoRow("Start Date", medication.startDate ?? "")
 
-            infoRow("End Date", medication.endDate)
+            infoRow("End Date", medication.endDate ?? "")
 
             infoRow("Status", medication.status.capitalized)
 

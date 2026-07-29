@@ -20,24 +20,24 @@ struct ActiveMedication: Codable,Hashable {
     let id: String
     let userId: String
     let name: String
-    let medicineType: String
-    let strength: String
-    let dose: String
+    let medicineType: String?
+    let strength: String?
+    let dose: String?
     let frequency: String?
     let time: [String]
     let durationDays: Int?
-    let startDate: String
-    let endDate: String
+    let startDate: String?
+    let endDate: String?
     let notes: String?
     let instructions: String?
     let doctorName: String?
     let pharmacy: String?
     let prescriptionImage: String?
-    let refillQuantity: Int
-    let refillThreshold: Int
-    let remainingStock: Int
-    let totalDayStock: Int
-    let takenDayStock: Int
+    let refillQuantity: Int?
+    let refillThreshold: Int?
+    let remainingStock: Int?
+    let totalDayStock: Int?
+    let takenDayStock: Int?
     let isRefillReminderEnabled: Bool
     let status: String
     let schedules: [MedicationSchedule]
