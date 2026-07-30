@@ -62,12 +62,17 @@ struct NotificationListScreen: View {
 
             if notificationVM.isLoading || notificationReadVM.isLoading {
 
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-
-                ProgressView()
-                    .tint(.white)
-                    .scaleEffect(1.5)
+//                Color.black.opacity(0.4)
+//                    .ignoresSafeArea()
+//
+//                ProgressView()
+//                    .tint(.white)
+//                    .scaleEffect(1.5)
+                
+                
+                NotificationSkeletonScreen()
+                
+                
             }
         }
         .navigationBarBackButtonHidden(true)
