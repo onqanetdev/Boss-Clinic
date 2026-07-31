@@ -43,13 +43,16 @@ struct TermsConditionScreen: View {
  
             if termsVM.isLoading {
  
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
- 
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(.white)
-                    .scaleEffect(1.5)
+//                Color.black.opacity(0.4)
+//                    .ignoresSafeArea()
+// 
+//                ProgressView()
+//                    .progressViewStyle(.circular)
+//                    .tint(.white)
+//                    .scaleEffect(1.5)
+                
+                TermsSkeletonScreen()
+                
             }
         }
         .navigationTitle("Terms & Conditions")

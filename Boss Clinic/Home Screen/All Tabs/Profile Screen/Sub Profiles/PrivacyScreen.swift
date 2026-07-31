@@ -41,13 +41,17 @@ struct PrivacyScreen: View {
  
             if privacyVM.isLoading {
  
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
- 
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(.white)
-                    .scaleEffect(1.5)
+//                Color.black.opacity(0.4)
+//                    .ignoresSafeArea()
+// 
+//                ProgressView()
+//                    .progressViewStyle(.circular)
+//                    .tint(.white)
+//                    .scaleEffect(1.5)
+                
+                
+                PrivacySkeletonScreen()
+                
             }
         }
         .navigationTitle("Privacy Policy")
@@ -81,5 +85,4 @@ struct PrivacyScreen: View {
     }
 }
  
-
 
