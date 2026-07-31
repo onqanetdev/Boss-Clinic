@@ -22,6 +22,8 @@ struct RefillReminderCardView: View {
     
    let onTappedRefill: () -> Void?
     let onTappedNotNow: () -> Void?
+    @State private var pendingConsultNow = false
+        @State private var showConsultNowScreen = false
     
    var body: some View {
 
@@ -82,7 +84,18 @@ struct RefillReminderCardView: View {
                .stroke(Color.white.opacity(0.12), lineWidth: 2)
        )
        //.clipShape(RoundedRectangle(cornerRadius: 24))
-       .fullScreenCover(isPresented: $showRefillAlert) {
+       .fullScreenCover(isPresented: $showRefillAlert, onDismiss: {
+           // RefillAlertView has now fully closed. If the user tapped
+           // "Consult Now" while it was open, present ConsultNowScreen next.
+           guard pendingConsultNow else { return }
+           pendingConsultNow = false
+
+           // Small delay so the outgoing dismiss animation finishes before
+           // the next fullScreenCover starts presenting.
+           DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+               showConsultNowScreen = true
+           }
+       }) {
            RefillAlertView(
                medicationName: medicationName,
                daysLeft: daysLeft,
@@ -92,6 +105,7 @@ struct RefillReminderCardView: View {
                },
                onScheduleConsultation: {
                    // TODO: navigate to your consultation booking flow
+                   pendingConsultNow = true
                },
                onNotNow: {
                    // Nothing needed — dismiss() already handles closing
@@ -99,6 +113,9 @@ struct RefillReminderCardView: View {
                }
            )
        }
+       .fullScreenCover(isPresented: $showConsultNowScreen) {
+                   ConsultNowScreen()
+               }
    }
 }
 

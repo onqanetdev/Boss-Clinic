@@ -18,6 +18,9 @@ struct RefillAlertView: View {
    var onNotNow: () -> Void = {}
 
    @Environment(\.dismiss) private var dismiss
+    
+
+    @State private var showConsultNowScreen = false
 
    var body: some View {
        ZStack {
@@ -87,7 +90,14 @@ struct RefillAlertView: View {
 
                // MARK: Not Now
                Button {
-                   onNotNow()
+                   //onNotNow()
+                  // dismiss()
+
+                   onScheduleConsultation()
+                   
+//                      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+//                          showConsultNowScreen = true
+//                      }
                    dismiss()
                } label: {
                    Text("Consult Now")
@@ -110,9 +120,13 @@ struct RefillAlertView: View {
            )
            .padding(.horizontal, 20)
        }
+       .fullScreenCover(isPresented: $showConsultNowScreen) {
+           ConsultNowScreen()
+       }
    }
 }
 
 #Preview {
    RefillAlertView(medicationName: "Lisinopril 10 mg", daysLeft: 2)
 }
+

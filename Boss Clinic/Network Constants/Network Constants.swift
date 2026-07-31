@@ -27,6 +27,7 @@ enum APIEndpoint: String {
     case logout = "logout"
     case notificationCount = "count-notification"
     case readNotification = "read-notification"
+    case createAppointment = "appointments/patient-booking"
 }
 
 
