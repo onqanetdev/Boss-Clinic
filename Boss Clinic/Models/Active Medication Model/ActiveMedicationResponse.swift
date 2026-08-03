@@ -16,7 +16,7 @@ struct ActiveMedicationResponse: Codable, Equatable {
 
 // MARK: - Medication
 
-struct ActiveMedication: Codable,Hashable {
+struct ActiveMedication: Codable,Hashable, Identifiable {
     let id: String
     let userId: String
     let name: String

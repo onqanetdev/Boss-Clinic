@@ -21,18 +21,16 @@ struct Medication: Identifiable, Hashable {
 struct AppointmentScreen: View {
  
     @State private var showAddMedication = false
-    @State private var selectedMedication: ActiveMedication?
+    //@State private var selectedMedication: ActiveMedication?
+    
+    @State private var expandedMedicationID: ActiveMedication?
+    
     @StateObject private var medicationVM = MedicationListViewModel()
  
-    // TODO: Replace with real data from your view model / API
-//    @State private var medications: [Medication] = [
-//          Medication(name: "Amoxicillin 500 mg", subtitle: "1 Tablet • Everyday"),
-//          Medication(name: "Metformin 500 mg", subtitle: "1 Tablet • Everyday"),
-//          Medication(name: "Atorvastatin 20 mg", subtitle: "1 Tablet • Everyday"),
-//          Medication(name: "Lisinopril 10 mg", subtitle: "1 Tablet • Everyday")
-//      ]
-    
+ 
     @State private var medications: [ActiveMedication] = []
+    
+
  
     var body: some View {
         
@@ -58,14 +56,28 @@ struct AppointmentScreen: View {
                     if medications.isEmpty {
                         emptyState
                     } else {
-                        ForEach(Array(medications.enumerated()), id: \.element.id) { index, medication in
-                            MedicationRow(medication: medication) {
-                                selectedMedication = medication
-                            }
-     
+                        
+                        ForEach(medications) { medication in
+                            MedicationRow(
+                                medication: medication,
+                                isExpanded: expandedMedicationID == medication,
+                                onToggle: {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        expandedMedicationID = (expandedMedicationID == medication) ? nil : medication
+                                    }
+                                },
+                                onClose: {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        expandedMedicationID = nil
+                                    }
+                                }
+                            )
+
                             Divider()
                                 .background(Color.white.opacity(0.2))
                         }
+                        //For Each Ending
+                        
                     }
      
                     Spacer(minLength: 40)
@@ -88,9 +100,6 @@ struct AppointmentScreen: View {
             Text("Add Medication")
                 .foregroundColor(.white)
                 .background(Color.black.ignoresSafeArea())
-        }
-        .navigationDestination(item: $selectedMedication) { medication in
-            MedicationDetailScreen(medication: medication)
         }
         .onAppear {
             medicationVM.fetchMedicationList()
@@ -144,39 +153,41 @@ struct AppointmentScreen: View {
 // MARK: - Row
  
 private struct MedicationRow: View {
- 
+
     let medication: ActiveMedication
-    let action: () -> Void
- 
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onClose: () -> Void
+
     var body: some View {
-        Button(action: action) {
+        VStack(alignment: .leading, spacing: 0) {
+            if isExpanded {
+                expandedCard
+            } else {
+                collapsedRow
+            }
+        }
+    }
+
+    // MARK: Collapsed row (unchanged look)
+
+    private var collapsedRow: some View {
+        Button(action: onToggle) {
             HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.12))
-                        .frame(width: 56, height: 56)
- 
-                    Image(systemName: "pills.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 26, height: 26)
-                        .foregroundColor(.white)
-                }
- 
+                icon(size: 56, iconSize: 26)
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(medication.name)
                         .font(.custom("Inter18pt-SemiBold", size: 14))
                         .foregroundColor(.white)
-                    
-                    let subtitle = "\(medication.dose ?? "") \(medication.medicineType ?? "") • \(medication.frequency ?? "")"
- 
+
                     Text(subtitle)
                         .font(.custom("Inter18pt-Regular", size: 13))
                         .foregroundColor(Color.white.opacity(0.5))
                 }
- 
+
                 Spacer()
- 
+
                 Image(systemName: "chevron.right")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.white.opacity(0.6))
@@ -184,6 +195,142 @@ private struct MedicationRow: View {
             .padding(.vertical, 16)
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: Expanded detail card
+
+    private var expandedCard: some View {
+        VStack(alignment: .leading, spacing: 20) {
+
+            HStack(alignment: .top) {
+                HStack(spacing: 16) {
+                    icon(size: 48, iconSize: 22)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(medication.name)
+                            .font(.custom("Inter18pt-SemiBold", size: 18))
+                            .foregroundColor(.white)
+
+                        statusBadge
+                    }
+                }
+
+                Spacer()
+
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+            }
+
+            // 2x2 stat grid
+            VStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    statBox(title: "Dose", value: medication.dose ?? "-")
+                    statBox(title: "Type", value: (medication.medicineType ?? "-").capitalized)
+                }
+                HStack(spacing: 12) {
+                    statBox(title: "Frequency", value: medication.frequency ?? "-")
+                    statBox(title: "Remaining Stock", value: "\(medication.remainingStock ?? 0) / \(medication.totalDayStock ?? 0)")
+                }
+            }
+
+            detailRow(title: "Scheduled Times", value: medication.time.joined(separator: ", "))
+
+            HStack {
+                detailColumn(title: "Start Date", value: medication.startDate ?? "-")
+                Spacer()
+                detailColumn(title: "End Date", value: medication.endDate ?? "-")
+            }
+
+            if !medication.instructions.orEmpty.isEmpty {
+                detailRow(title: "Instructions", value: medication.instructions ?? "")
+            }
+
+            if !medication.notes.orEmpty.isEmpty {
+                detailRow(title: "Notes", value: medication.notes ?? "")
+            }
+        }
+        .padding(20)
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .padding(.vertical, 12)
+    }
+
+    // MARK: Shared pieces
+
+    private var subtitle: String {
+        "\(medication.dose ?? "") \(medication.medicineType ?? "") • \(medication.frequency ?? "")"
+    }
+
+    private var statusBadge: some View {
+        Text(medication.status.capitalized)
+            .font(.custom("Inter18pt-SemiBold", size: 12))
+            .foregroundColor(statusColor)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(statusColor.opacity(0.15))
+            .clipShape(Capsule())
+    }
+
+    private var statusColor: Color {
+        medication.status.lowercased() == "active" ? .green : .orange
+    }
+
+    private func icon(size: CGFloat, iconSize: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: size, height: size)
+
+            Image(systemName: "pills.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: iconSize, height: iconSize)
+                .foregroundColor(.white)
+        }
+    }
+
+    private func statBox(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.custom("Inter18pt-Regular", size: 12))
+                .foregroundColor(.gray)
+
+            Text(value)
+                .font(.custom("Inter18pt-SemiBold", size: 16))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func detailRow(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.custom("Inter18pt-Regular", size: 13))
+                .foregroundColor(.gray)
+
+            Text(value)
+                .font(.custom("Inter18pt-Regular", size: 14))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func detailColumn(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.custom("Inter18pt-Regular", size: 13))
+                .foregroundColor(.gray)
+
+            Text(value)
+                .font(.custom("Inter18pt-Regular", size: 14))
+                .foregroundColor(.white)
+        }
     }
 }
  
