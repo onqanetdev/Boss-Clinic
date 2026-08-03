@@ -119,7 +119,8 @@ struct HomeScreen: View {
            
            // Loader
            if dashboardVM.isLoading || reminderTakenVM.isLoading || requestRefillVM.isLoading || newsletterVM.isLoading {
-               HomeSkeletonScreen()
+              // HomeSkeletonScreen()
+               MedicationSkeletonScreen()
            }
 
            
@@ -294,6 +295,5 @@ struct HomeScreen: View {
 #Preview {
     HomeScreen()
 }
-
 
 

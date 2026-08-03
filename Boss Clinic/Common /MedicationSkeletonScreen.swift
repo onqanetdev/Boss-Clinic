@@ -54,7 +54,7 @@ struct MedicationSkeletonRow: View {
 
             Circle()
                 .fill(Color.white.opacity(0.08))
-                .frame(width: 86, height: 86)
+                .frame(width: 46, height: 46)
                 .shimmering()
 
             VStack(alignment: .leading, spacing: 12) {
