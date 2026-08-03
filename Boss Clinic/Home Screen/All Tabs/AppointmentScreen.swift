@@ -23,15 +23,14 @@ struct AppointmentScreen: View {
     @State private var showAddMedication = false
     //@State private var selectedMedication: ActiveMedication?
     
-    @State private var expandedMedicationID: ActiveMedication?
+   // @State private var expandedMedicationID: ActiveMedication?
+    
+    @State private var selectedMedication: ActiveMedication?
     
     @StateObject private var medicationVM = MedicationListViewModel()
  
- 
     @State private var medications: [ActiveMedication] = []
     
-
- 
     var body: some View {
         
         ZStack {
@@ -58,20 +57,11 @@ struct AppointmentScreen: View {
                     } else {
                         
                         ForEach(medications) { medication in
-                            MedicationRow(
-                                medication: medication,
-                                isExpanded: expandedMedicationID == medication,
-                                onToggle: {
-                                    withAnimation(.easeInOut(duration: 0.25)) {
-                                        expandedMedicationID = (expandedMedicationID == medication) ? nil : medication
-                                    }
-                                },
-                                onClose: {
-                                    withAnimation(.easeInOut(duration: 0.25)) {
-                                        expandedMedicationID = nil
-                                    }
+                            MedicationRow(medication: medication) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    selectedMedication = medication
                                 }
-                            )
+                            }
 
                             Divider()
                                 .background(Color.white.opacity(0.2))
@@ -92,6 +82,27 @@ struct AppointmentScreen: View {
                 MedicationSkeletonScreen()
                 
             }
+            
+            
+            // MARK: Popup overlay
+                if let medication = selectedMedication {
+                    Color.black.opacity(0.6)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedMedication = nil
+                            }
+                        }
+                        .transition(.opacity)
+
+                    MedicationDetailCard(medication: medication) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedMedication = nil
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             
         }
         .background(Color.black.ignoresSafeArea())
@@ -155,24 +166,10 @@ struct AppointmentScreen: View {
 private struct MedicationRow: View {
 
     let medication: ActiveMedication
-    let isExpanded: Bool
-    let onToggle: () -> Void
-    let onClose: () -> Void
+    let action: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if isExpanded {
-                expandedCard
-            } else {
-                collapsedRow
-            }
-        }
-    }
-
-    // MARK: Collapsed row (unchanged look)
-
-    private var collapsedRow: some View {
-        Button(action: onToggle) {
+        Button(action: action) {
             HStack(spacing: 16) {
                 icon(size: 56, iconSize: 26)
 
@@ -197,14 +194,37 @@ private struct MedicationRow: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: Expanded detail card
+    private var subtitle: String {
+        "\(medication.dose ?? "") \(medication.medicineType ?? "") • \(medication.frequency ?? "")"
+    }
 
-    private var expandedCard: some View {
+    private func icon(size: CGFloat, iconSize: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: size, height: size)
+
+            Image(systemName: "pills.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: iconSize, height: iconSize)
+                .foregroundColor(.white)
+        }
+    }
+}
+
+
+private struct MedicationDetailCard: View {
+
+    let medication: ActiveMedication
+    let onClose: () -> Void
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
             HStack(alignment: .top) {
                 HStack(spacing: 16) {
-                    icon(size: 48, iconSize: 22)
+                    icon
 
                     VStack(alignment: .leading, spacing: 6) {
                         Text(medication.name)
@@ -224,7 +244,6 @@ private struct MedicationRow: View {
                 }
             }
 
-            // 2x2 stat grid
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
                     statBox(title: "Dose", value: medication.dose ?? "-")
@@ -253,15 +272,23 @@ private struct MedicationRow: View {
             }
         }
         .padding(20)
-        .background(Color.white.opacity(0.06))
+        .background(Color(red: 0.11, green: 0.11, blue: 0.11))
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .padding(.vertical, 12)
+        .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
     }
 
-    // MARK: Shared pieces
+    private var icon: some View {
+        ZStack {
+            Circle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: 48, height: 48)
 
-    private var subtitle: String {
-        "\(medication.dose ?? "") \(medication.medicineType ?? "") • \(medication.frequency ?? "")"
+            Image(systemName: "pills.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 22, height: 22)
+                .foregroundColor(.white)
+        }
     }
 
     private var statusBadge: some View {
@@ -276,20 +303,6 @@ private struct MedicationRow: View {
 
     private var statusColor: Color {
         medication.status.lowercased() == "active" ? .green : .orange
-    }
-
-    private func icon(size: CGFloat, iconSize: CGFloat) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color.white.opacity(0.12))
-                .frame(width: size, height: size)
-
-            Image(systemName: "pills.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: iconSize, height: iconSize)
-                .foregroundColor(.white)
-        }
     }
 
     private func statBox(title: String, value: String) -> some View {
@@ -333,7 +346,9 @@ private struct MedicationRow: View {
         }
     }
 }
- 
+
+
+
 #Preview {
     NavigationStack {
         AppointmentScreen()
