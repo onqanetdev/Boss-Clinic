@@ -28,6 +28,7 @@ enum APIEndpoint: String {
     case notificationCount = "count-notification"
     case readNotification = "read-notification"
     case createAppointment = "appointments/patient-booking"
+    case newsletters = "newsletters"
 }
 
 

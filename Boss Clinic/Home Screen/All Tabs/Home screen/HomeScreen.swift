@@ -17,6 +17,9 @@ struct HomeScreen: View {
    @StateObject private var reminderTakenVM = ReminderTakenViewModel()
    @StateObject private var requestRefillVM = RefillRequestViewModel()
    @StateObject private var notificationCountVM = NotificationCountViewModel()
+    
+   @StateObject private var newsletterVM = NewsletterViewModel()
+   @State private var newsletters: [Newsletter] = []
    
    
    @State private var schedules: [TodaySchedule] = []
@@ -30,6 +33,9 @@ struct HomeScreen: View {
    
    @State var showNotificationScreen = false
    @AppStorage("loginUserName") private var loginUserName = "Jhon"
+    
+    @State private var selectedNewsletter: Newsletter?
+    @State private var showNewsletterDetail = false
    
    var body: some View {
        
@@ -53,10 +59,6 @@ struct HomeScreen: View {
                                    .font(.system(size: 22))
                                    .foregroundColor(.white)
                                
-//                               Circle()
-//                                   .fill(Color.red)
-//                                   .frame(width: 10, height: 10)
-//                                   .offset(x: -2, y: -3)
                                
                                if notificationCount > 0 {
 
@@ -71,7 +73,9 @@ struct HomeScreen: View {
                            }
                        }
                    }
-                   // NextMedicationCardView()
+                   
+                   
+                   newsLetterSection   // ← add this line
                    
                    if isScheduled {
                        NextMedicationCardView(
@@ -114,17 +118,7 @@ struct HomeScreen: View {
            }
            
            // Loader
-           if dashboardVM.isLoading || reminderTakenVM.isLoading ||  requestRefillVM.isLoading {
-               
-//               Color.black.opacity(0.4)
-//                   .ignoresSafeArea()
-//               
-//               ProgressView()
-//                   .progressViewStyle(.circular)
-//                   .tint(.white)
-//                   .scaleEffect(1.5)
-               
-               
+           if dashboardVM.isLoading || reminderTakenVM.isLoading || requestRefillVM.isLoading || newsletterVM.isLoading {
                HomeSkeletonScreen()
            }
 
@@ -136,6 +130,18 @@ struct HomeScreen: View {
                EmptyView()
            }
            .hidden()
+           
+           
+           
+           // ✅ moved here, inside the ZStack
+               NavigationLink(
+                   destination: selectedNewsletter.map { NewsletterDetailScreen(newsletter: $0) },
+                   isActive: $showNewsletterDetail
+               ) {
+                   EmptyView()
+               }
+               .hidden()
+           
        }
        .background(Color.black.ignoresSafeArea())
        .navigationBarBackButtonHidden(true)
@@ -206,6 +212,19 @@ struct HomeScreen: View {
        } message: {
            Text(successMessage)
        }
+       
+       .onAppear {
+           dashboardVM.fetchDashboard()
+           notificationCountVM.fetchNotificationCount()
+           newsletterVM.fetchNewsletters()
+       }
+
+       .onChange(of: newsletterVM.newsletterResponse) { response in
+           guard let response else { return }
+           newsletters = response.data?.data ?? []
+       }
+       
+       
    }
    
    
@@ -236,6 +255,8 @@ struct HomeScreen: View {
            dashboardVM.fetchDashboard()
 
            notificationCountVM.fetchNotificationCount()
+           
+           newsletterVM.fetchNewsletters()
 
            // dashboardVM.isLoading flips to false once the request
            // completes (success or failure) — poll it briefly rather
@@ -248,10 +269,31 @@ struct HomeScreen: View {
            }
        }
    }
+    
+    
+    private var newsLetterSection: some View {
+        Group {
+            if !newsletters.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("News Letter")
+                        .font(.custom("Inter18pt-SemiBold", size: 16))
+                        .foregroundColor(.white)
 
+                    ForEach(newsletters) { newsletter in
+                        NewsLetterCardView(newsletter: newsletter) {
+                            selectedNewsletter = newsletter
+                            showNewsletterDetail = true
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 #Preview {
     HomeScreen()
 }
+
+
 
