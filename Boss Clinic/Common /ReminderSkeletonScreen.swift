@@ -61,6 +61,25 @@ struct ReminderSkeletonScreen: View {
 }
 
 
+
+struct ReminderListSkeleton: View {
+
+    var body: some View {
+
+        VStack(alignment: .leading, spacing: 24) {
+
+            ReminderDateSectionSkeleton(rows: 2)
+
+            ReminderDateSectionSkeleton(rows: 6)
+        }
+    }
+}
+
+
+
+
+
+
 struct ReminderDateSectionSkeleton: View {
 
     let rows: Int

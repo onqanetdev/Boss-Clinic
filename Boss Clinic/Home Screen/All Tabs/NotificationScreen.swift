@@ -29,48 +29,46 @@ struct NotificationScreen: View {
 
    @StateObject private var viewModel = MedicationOverviewViewModel()
 
-   var body: some View {
+    var body: some View {
 
-       ZStack {
+        ZStack {
 
-           Color.black
-               .ignoresSafeArea()
+            Color.black
+                .ignoresSafeArea()
 
-           ScrollView(showsIndicators: false) {
-               VStack(alignment: .leading, spacing: 24) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 24) {
 
-                   // MARK: Title
-                   Text("Reminders")
-                       .font(.custom("Inter24pt-Bold", size: 28))
-                       .foregroundColor(.white)
-                       .padding(.top, 20)
+                    // MARK: Title — always visible
+                    Text("Reminders")
+                        .font(.custom("Inter24pt-Bold", size: 28))
+                        .foregroundColor(.white)
+                        .padding(.top, 20)
 
-                   // MARK: Segmented control
-                   segmentedControl
+                    // MARK: Segmented control — always visible, always interactive
+                    segmentedControl
 
-                   Group {
-                       if selectedTab == .upcoming {
-                           upcomingList
-                       } else {
-                           historyList
-                       }
-                   }
+                    // MARK: Content area — swaps between real list and shimmer
+                    Group {
+                        if viewModel.isLoading {
+                            ReminderListSkeleton()
+                        } else if selectedTab == .upcoming {
+                            upcomingList
+                        } else {
+                            historyList
+                        }
+                    }
 
-                   Spacer(minLength: 40)
-               }
-               .padding(.horizontal, 20)
-           }
-
-           if viewModel.isLoading {
-               ReminderSkeletonScreen()
-           }
-       }
-       .onAppear {
-           loadData()
-       }
-       .navigationBarBackButtonHidden(true)
-   }
-
+                    Spacer(minLength: 40)
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .onAppear {
+            loadData()
+        }
+        .navigationBarBackButtonHidden(true)
+    }
    // MARK: - Upcoming List
 
    @ViewBuilder
@@ -95,10 +93,7 @@ struct NotificationScreen: View {
                                .onAppear {
 
                                    let isLast = isLastUpcomingItem(section: section, index: index)
-//                                   print("👁️ upcoming row appeared — id: \(reminder.id), date: \(section.date), index: \(index)/\(section.logs.count - 1), isLastItem: \(isLast)")
 
-                                   // Reaching the very last row of the very last
-                                   // date section triggers the next page.
                                    if isLast {
                                        viewModel.fetchMedicationOverview(type: "upcoming", loadMore: true)
                                    }
