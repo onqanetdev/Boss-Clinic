@@ -126,6 +126,8 @@ struct AppointmentScreen: View {
             guard let response else { return }
 
             medications = response.data
+            
+            
         }
     }
  
@@ -258,9 +260,9 @@ private struct MedicationDetailCard: View {
             detailRow(title: "Scheduled Times", value: medication.time.joined(separator: ", "))
 
             HStack {
-                detailColumn(title: "Start Date", value: medication.startDate ?? "-")
+                detailColumn(title: "Start Date", value: medication.startDate?.asFormattedDate ?? "-")
                 Spacer()
-                detailColumn(title: "End Date", value: medication.endDate ?? "-")
+                detailColumn(title: "End Date", value: medication.endDate?.asFormattedDate ?? "-")
             }
 
             if !medication.instructions.orEmpty.isEmpty {
@@ -354,6 +356,4 @@ private struct MedicationDetailCard: View {
         AppointmentScreen()
     }
 }
-
-
 

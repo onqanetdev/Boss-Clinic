@@ -15,6 +15,7 @@ struct NotificationListScreen: View {
     @StateObject private var notificationReadVM = NotificationReadViewModel()
 
     @State private var notifications: [NotificationItem] = []
+    @State private var selectedNotification: NotificationItem?
 
     var body: some View {
 
@@ -50,6 +51,8 @@ struct NotificationListScreen: View {
                                     notificationReadVM.markNotificationAsRead(
                                         notificationID: notification.id
                                     )
+
+                                    selectedNotification = notification
                                 }
                             }
                         }
@@ -61,23 +64,15 @@ struct NotificationListScreen: View {
             .padding(.top, 10)
 
             if notificationVM.isLoading || notificationReadVM.isLoading {
+                
 
-//                Color.black.opacity(0.4)
-//                    .ignoresSafeArea()
-//
-//                ProgressView()
-//                    .tint(.white)
-//                    .scaleEffect(1.5)
-                
-                
                 NotificationSkeletonScreen()
-                
-                
             }
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
             notificationVM.fetchNotifications()
+            //print("Notification Details -> ", notificationVM.notificationResponse?.data)
         }
         .onChange(of: notificationVM.notificationResponse) { response in
 
@@ -99,6 +94,10 @@ struct NotificationListScreen: View {
             guard let error else { return }
 
             print(error)
+        }
+        
+        .navigationDestination(item: $selectedNotification) { notification in
+            NotificationDetailScreen(notification: notification)
         }
     }
 

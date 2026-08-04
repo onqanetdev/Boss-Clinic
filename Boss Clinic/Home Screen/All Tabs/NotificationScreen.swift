@@ -36,33 +36,37 @@ struct NotificationScreen: View {
             Color.black
                 .ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 24) {
 
-                    // MARK: Title — always visible
-                    Text("Reminders")
-                        .font(.custom("Inter24pt-Bold", size: 28))
-                        .foregroundColor(.white)
-                        .padding(.top, 20)
+                // MARK: Title — fixed, never scrolls
+                Text("Reminders")
+                    .font(.custom("Inter24pt-Bold", size: 28))
+                    .foregroundColor(.white)
+                    .padding(.top, 20)
 
-                    // MARK: Segmented control — always visible, always interactive
-                    segmentedControl
+                // MARK: Segmented control — fixed, never scrolls
+                segmentedControl
 
-                    // MARK: Content area — swaps between real list and shimmer
-                    Group {
-                        if viewModel.isLoading {
-                            ReminderListSkeleton()
-                        } else if selectedTab == .upcoming {
-                            upcomingList
-                        } else {
-                            historyList
+                // MARK: Scrollable content area
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+
+                        Group {
+                            if viewModel.isLoading {
+                                ReminderListSkeleton()
+                            } else if selectedTab == .upcoming {
+                                upcomingList
+                            } else {
+                                historyList
+                            }
                         }
-                    }
 
-                    Spacer(minLength: 40)
+                        Spacer(minLength: 40)
+                    }
                 }
-                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)   // ← the fix
             }
+            .padding(.horizontal, 20)
         }
         .onAppear {
             loadData()

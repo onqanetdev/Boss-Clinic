@@ -15,7 +15,7 @@ struct NotificationResponse: Codable, Equatable {
 }
 
 // MARK: - Notification Item
-struct NotificationItem: Codable, Equatable, Identifiable {
+struct NotificationItem: Codable, Equatable, Identifiable, Hashable {
 
     let id: String
     let userId: String
@@ -29,7 +29,7 @@ struct NotificationItem: Codable, Equatable, Identifiable {
     let actionURL: String?
     let createdAt: String
     let updatedAt: String
-    let datetime: String
+    let datetime: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -49,7 +49,7 @@ struct NotificationItem: Codable, Equatable, Identifiable {
 }
 
 // MARK: - Notification Data
-struct NotificationData: Codable, Equatable {
+struct NotificationData: Codable, Equatable, Hashable {
 
     let medicationLogId: String
     let medicationId: String
