@@ -8,9 +8,6 @@
 import Foundation
 
 
-
-
-
 class MedicationOverviewAPICaller {
 
     static let shared = MedicationOverviewAPICaller()
@@ -22,6 +19,15 @@ class MedicationOverviewAPICaller {
         completion: @escaping (Result<Any, NetworkError>) -> Void
     ) {
 
+        
+        // ✅ Internet check
+                guard NetworkMonitor.shared.isConnected else {
+                    DispatchQueue.main.async {
+                        completion(.failure(.noInternet))
+                    }
+                    return
+                }
+        
         let urlString = baseURL + APIEndpoint.medicationOverview.rawValue
 
         guard let url = URL(string: urlString) else {

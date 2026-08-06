@@ -13,6 +13,7 @@ final class NotificationReadViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var notificationReadResponse: NotificationReadResponse?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
 
     private let apiCaller = NotificationReadAPICaller.shared
 
@@ -39,7 +40,12 @@ final class NotificationReadViewModel: ObservableObject {
 
                 case .failure(let error):
 
-                    self.errorMessage = error.localizedDescription
+                   // self.errorMessage = error.localizedDescription
+                    if case .noInternet = error {      // NEW
+                        self.isOffline = true
+                    } else {
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }

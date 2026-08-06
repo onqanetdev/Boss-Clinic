@@ -16,6 +16,7 @@ struct NotificationListScreen: View {
 
     @State private var notifications: [NotificationItem] = []
     @State private var selectedNotification: NotificationItem?
+    @State private var showOfflineAlert = false
 
     var body: some View {
 
@@ -70,6 +71,21 @@ struct NotificationListScreen: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .onChange(of: notificationVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: notificationReadVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
+        }
         .onAppear {
             notificationVM.fetchNotifications()
             //print("Notification Details -> ", notificationVM.notificationResponse?.data)

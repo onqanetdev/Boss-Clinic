@@ -21,6 +21,8 @@ struct ConsultNowScreen: View {
     private var isFormValid: Bool {
         !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+    
+    @State private var showOfflineAlert = false
 
     var body: some View {
         ZStack {
@@ -211,6 +213,17 @@ struct ConsultNowScreen: View {
         .onChange(of: consultVM.appointmentResponse) { response in
             guard response != nil else { return }
             dismiss()
+        }
+        
+        .onChange(of: consultVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
         }
     }
 }

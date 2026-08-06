@@ -28,6 +28,7 @@ struct ProfileScreen: View {
 
   @StateObject private var profileVM = ProfileViewModel()
   @StateObject private var logoutVM = LogoutViewModel()
+  @State private var showOfflineAlert = false
 
   var body: some View {
       
@@ -141,8 +142,6 @@ struct ProfileScreen: View {
       .onAppear {
           profileVM.fetchProfile()
       }
-
-
       .onChange(of: profileVM.profileResponse) { response in
           guard let response else { return }
 
@@ -200,6 +199,22 @@ struct ProfileScreen: View {
           Button("OK", role: .cancel) { }
       } message: {
           Text(logoutVM.errorMessage ?? "")
+      }
+      
+      .onChange(of: profileVM.isOffline) { offline in
+          if offline {
+              showOfflineAlert = true
+          }
+      }
+      .onChange(of: logoutVM.isOffline) { offline in
+          if offline {
+              showOfflineAlert = true
+          }
+      }
+      .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+          Button("OK", role: .cancel) { }
+      } message: {
+          Text("Please check your internet connection and try again.")
       }
 
   }
@@ -285,3 +300,5 @@ private struct ProfileRow: View {
       ProfileScreen()
   }
 }
+
+

@@ -31,6 +31,8 @@ struct AppointmentScreen: View {
  
     @State private var medications: [ActiveMedication] = []
     
+    @State private var showOfflineAlert = false
+    
     var body: some View {
         
         ZStack {
@@ -128,6 +130,17 @@ struct AppointmentScreen: View {
             medications = response.data
             
             
+        }
+        .onChange(of: medicationVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true   // or toggle a banner
+            }
+        }
+        
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
         }
     }
  

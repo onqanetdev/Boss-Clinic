@@ -28,6 +28,8 @@ struct NotificationScreen: View {
    @State private var selectedTab: ReminderTab = .upcoming
 
    @StateObject private var viewModel = MedicationOverviewViewModel()
+    
+    @State private var showOfflineAlert = false
 
     var body: some View {
 
@@ -71,6 +73,17 @@ struct NotificationScreen: View {
         .onAppear {
             loadData()
         }
+        .onChange(of: viewModel.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
+        }
+        
         .navigationBarBackButtonHidden(true)
     }
    // MARK: - Upcoming List

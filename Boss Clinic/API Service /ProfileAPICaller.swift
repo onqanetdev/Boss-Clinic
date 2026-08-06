@@ -16,7 +16,17 @@ class ProfileAPICaller {
     func fetchProfile(
         completion: @escaping (Result<ProfileResponse, NetworkError>) -> Void
     ) {
+        
+        
+        // ✅ Internet check
+                guard NetworkMonitor.shared.isConnected else {
+                    DispatchQueue.main.async {
+                        completion(.failure(.noInternet))
+                    }
+                    return
+                }
 
+    
         let urlString = baseURL + APIEndpoint.profile.rawValue
 
         guard let url = URL(string: urlString) else {

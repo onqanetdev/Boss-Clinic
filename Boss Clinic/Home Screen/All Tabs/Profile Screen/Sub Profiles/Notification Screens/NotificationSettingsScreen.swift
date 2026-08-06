@@ -26,6 +26,7 @@ struct NotificationSettingsScreen: View {
     
     
     @State private var settingsLoaded = false
+    @State private var showOfflineAlert = false
 
     var body: some View {
 
@@ -171,6 +172,23 @@ struct NotificationSettingsScreen: View {
         .onChange(of: vibrationEnabled) { _ in
             guard settingsLoaded else { return }
             updateNotificationSettings()
+        }
+        
+        .onChange(of: notificationVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: updateVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
         }
         
     }

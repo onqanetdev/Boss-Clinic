@@ -13,11 +13,14 @@ final class NotificationViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var notificationResponse: NotificationResponse?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
+
 
     func fetchNotifications() {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false   // NEW
 
         NotificationAPICaller.shared.fetchNotifications { [weak self] result in
 
@@ -52,6 +55,8 @@ final class NotificationViewModel: ObservableObject {
 
                 case .unauthorized:
                     self.errorMessage = "Your session has expired. Please log in again."
+                case .noInternet:
+                    self.errorMessage = "No Internet Connection."
                 }
             }
         }

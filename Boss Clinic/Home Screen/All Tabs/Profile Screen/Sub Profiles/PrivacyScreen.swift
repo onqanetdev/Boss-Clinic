@@ -10,6 +10,7 @@ import SwiftUI
 struct PrivacyScreen: View {
  
     @StateObject private var privacyVM = PrivacyViewModel()
+    @State private var showOfflineAlert = false
  
     var body: some View {
  
@@ -73,6 +74,17 @@ struct PrivacyScreen: View {
         } message: {
  
             Text(privacyVM.errorMessage ?? "")
+        }
+        
+        .onChange(of: privacyVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
         }
     }
 }

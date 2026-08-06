@@ -13,6 +13,7 @@ class PrivacyViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var privacyResponse: PrivacyModel?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
 
     // MARK: - Fetch Privacy Policy
 
@@ -20,6 +21,7 @@ class PrivacyViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false   // NEW
 
         PrivacyAPICaller.fetchPrivacyPolicy { [weak self] result in
 
@@ -38,7 +40,12 @@ class PrivacyViewModel: ObservableObject {
 
             case .failure(let error):
 
-                self.errorMessage = error.errorDescription
+                if case .noInternet = error {      // NEW
+                    self.isOffline = true
+                } else {
+                    self.errorMessage = error.errorDescription
+                }
+                
             }
         }
     }

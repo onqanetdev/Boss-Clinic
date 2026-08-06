@@ -14,7 +14,9 @@ final class ReminderTakenViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var reminderTakenResponse: MedicationTakenResponse?
     @Published var errorMessage: String?
-
+    @Published var isOffline: Bool = false   // NEW
+    
+    
     private let apiCaller = ReminderTakenAPICaller.shared
 
     func markReminderAsTaken(
@@ -25,6 +27,7 @@ final class ReminderTakenViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false   // NEW
 
         apiCaller.markReminderAsTaken(
             medicationID: medicationID,
@@ -46,7 +49,12 @@ final class ReminderTakenViewModel: ObservableObject {
 
                 case .failure(let error):
 
-                    self.errorMessage = error.localizedDescription
+                    //self.errorMessage = error.localizedDescription
+                    if case .noInternet = error {      // NEW
+                        self.isOffline = true
+                    } else {
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }

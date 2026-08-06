@@ -26,6 +26,7 @@ struct MyProfileScreen: View {
     @State private var dateSelected = false
 
     @State var selectedAddress = ""
+    @State private var showOfflineAlert = false
     
     var body: some View {
 
@@ -141,6 +142,16 @@ struct MyProfileScreen: View {
                 //print("✅ Profile Updated Successfully")
                 // Optionally pop back or show a success toast/alert
             }
+        }
+        .onChange(of: editProfileVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
         }
         .alert(
             "Error",

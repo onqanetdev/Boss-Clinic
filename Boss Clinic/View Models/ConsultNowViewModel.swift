@@ -14,6 +14,7 @@ final class ConsultNowViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var appointmentResponse: BookAppointmentResponse?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
 
     private let apiCaller = ConsultNowAPICaller.shared
 
@@ -48,7 +49,13 @@ final class ConsultNowViewModel: ObservableObject {
 
                 case .failure(let error):
 
-                    self.errorMessage = error.localizedDescription
+                    //self.errorMessage = error.localizedDescription
+                    
+                    if case .noInternet = error {      // NEW
+                        self.isOffline = true
+                    } else {
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }

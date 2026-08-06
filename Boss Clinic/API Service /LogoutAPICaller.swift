@@ -17,6 +17,17 @@ class LogoutAPICaller {
     func logout(
         completion: @escaping (Result<LogoutResponse, NetworkError>) -> Void
     ) {
+
+        // ✅ Internet check — do NOT clear local session here.
+        // The user should stay logged in / on the current screen until
+        // the server confirms the logout actually happened.
+        guard NetworkMonitor.shared.isConnected else {
+
+            DispatchQueue.main.async {
+                completion(.failure(.noInternet))
+            }
+            return
+        }
  
         let urlString = baseURL + APIEndpoint.logout.rawValue
         // APIEndpoint.logout = "/logout"
@@ -128,6 +139,5 @@ class LogoutAPICaller {
         }.resume()
     }
 }
-
 
 

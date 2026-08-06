@@ -14,10 +14,12 @@ class LogoutViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var logoutResponse: LogoutResponse?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
  
     func logoutUser() {
  
         isLoading = true
+        isOffline = false   // NEW
  
         LogoutAPICaller.shared.logout { [weak self] result in
  
@@ -31,7 +33,12 @@ class LogoutViewModel: ObservableObject {
                 self.logoutResponse = response
  
             case .failure(let error):
-                self.errorMessage = error.localizedDescription
+               // self.errorMessage = error.localizedDescription
+                if case .noInternet = error {      // NEW
+                    self.isOffline = true
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
             }
         }
     }

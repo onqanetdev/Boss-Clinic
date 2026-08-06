@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Network
 
 
 
@@ -14,6 +15,7 @@ enum NetworkError: LocalizedError {
     case decodingError
     case serverError
     case responsErr
+    case noInternet
     case validationError(String)
     case unauthorized
    // case couponAlreadyApplied(CouponAlreadyAppliedResModel)
@@ -31,6 +33,8 @@ enum NetworkError: LocalizedError {
             return "Access Token is Invalid"
         case .validationError(let msg):
             return msg
+        case .noInternet:
+            return "No Internet Connection"
 //        case .couponAlreadyApplied(let res):
 //            return res.message
         }
@@ -43,6 +47,26 @@ enum NetworkError: LocalizedError {
 enum NotificationScreenType {
     case notification
     case coupon
+}
+
+
+
+
+final class NetworkMonitor {
+
+    static let shared = NetworkMonitor()
+
+    private let monitor = NWPathMonitor()
+    private let queue = DispatchQueue(label: "NetworkMonitorQueue")
+
+    private(set) var isConnected: Bool = true
+
+    private init() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            self?.isConnected = path.status == .satisfied
+        }
+        monitor.start(queue: queue)
+    }
 }
 
 

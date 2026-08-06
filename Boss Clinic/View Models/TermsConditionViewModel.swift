@@ -13,11 +13,13 @@ class TermsConditionViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var termsConditionResponse: TermsConditionModel?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
 
     func fetchTermsCondition() {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false   // NEW
 
         TermsConditionAPICaller.fetchTermsCondition { [weak self] result in
 
@@ -37,7 +39,11 @@ class TermsConditionViewModel: ObservableObject {
                     print("📄 Title:", response.data.title)
 
                 case .failure(let error):
-                    self.errorMessage = error.errorDescription
+                    if case .noInternet = error {      // NEW
+                        self.isOffline = true
+                    } else {
+                        self.errorMessage = error.errorDescription
+                    }
                 }
             }
         }

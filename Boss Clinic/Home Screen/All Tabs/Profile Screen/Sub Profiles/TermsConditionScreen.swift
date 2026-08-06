@@ -11,6 +11,7 @@ import SwiftUI
 struct TermsConditionScreen: View {
  
     @StateObject private var termsVM = TermsConditionViewModel()
+    @State private var showOfflineAlert = false
  
     var body: some View {
  
@@ -71,6 +72,19 @@ struct TermsConditionScreen: View {
         } message: {
             Text(termsVM.errorMessage ?? "")
         }
+        
+        .onChange(of: termsVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
+        }
+        
     }
 }
  

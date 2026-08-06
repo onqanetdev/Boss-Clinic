@@ -24,6 +24,7 @@ struct LoginView: View {
     @StateObject private var loginVM = LoginViewModel()
     @StateObject private var verifyOTPVM = VerifyOTPViewModel()
     @StateObject private var fcmVM = FCMViewModel()
+    @State private var showOfflineAlert = false
  
     var body: some View {
         ZStack {
@@ -91,6 +92,28 @@ struct LoginView: View {
                 }
             }
         }
+        .onChange(of: loginVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: verifyOTPVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: fcmVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
+        }
+        
+        
         .onChange(of: loginVM.isOTPSent) { success in
             if success {
                 withAnimation {
@@ -99,6 +122,7 @@ struct LoginView: View {
                 }
             }
         }
+        
         .onChange(of: verifyOTPVM.isLoginSuccessful) { success in
             guard success else { return }
 

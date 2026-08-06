@@ -13,11 +13,13 @@ final class MedicationListViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var medicationResponse: ActiveMedicationResponse?
     @Published var errorMessage: String?
+    @Published var isOffline = false   // NEW
 
     func fetchMedicationList() {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false              // NEW: reset on every fetch
 
         MedicationListAPICaller.shared.fetchMedicationList { [weak self] result in
 
@@ -36,12 +38,15 @@ final class MedicationListViewModel: ObservableObject {
 
             case .failure(let error):
 
-                self.errorMessage = error.localizedDescription
+                if case .noInternet = error {          // NEW
+                    self.isOffline = true
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
 
                 print("❌ Medication List Error: \(error.localizedDescription)")
             }
         }
     }
 }
-
 

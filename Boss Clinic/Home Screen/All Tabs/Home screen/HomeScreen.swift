@@ -36,6 +36,8 @@ struct HomeScreen: View {
     
     @State private var selectedNewsletter: Newsletter?
     @State private var showNewsletterDetail = false
+    
+    @State private var showOfflineAlert = false
    
    var body: some View {
        
@@ -151,6 +153,11 @@ struct HomeScreen: View {
            dashboardVM.fetchDashboard()
            notificationCountVM.fetchNotificationCount()
        }
+       .onChange(of: reminderTakenVM.isOffline) { offline in
+           if offline {
+               showOfflineAlert = true
+           }
+       }
        
        .onChange(of: dashboardVM.dashboardResponse) { response in
 
@@ -208,6 +215,14 @@ struct HomeScreen: View {
            notificationCount = response.notificationCount
        }
        
+       .onChange(of: requestRefillVM.isOffline) { offline in
+           if offline {
+               showOfflineAlert = true
+               // if using a shared alert, consider a dedicated message var, e.g.:
+               // offlineAlertMessage = "No internet connection. Your refill request wasn't sent."
+           }
+       }
+       
        .alert("Success", isPresented: $showSuccessAlert) {
            Button("OK", role: .cancel) { }
        } message: {
@@ -224,7 +239,27 @@ struct HomeScreen: View {
            guard let response else { return }
            newsletters = response.data?.data ?? []
        }
-       
+       .onChange(of: dashboardVM.isOffline) { offline in
+           if offline {
+               showOfflineAlert = true
+           }
+       }
+       .onChange(of: newsletterVM.isOffline) { offline in
+           if offline {
+               showOfflineAlert = true
+           }
+       }
+       .onChange(of: notificationCountVM.isOffline) { offline in
+           if offline {
+               showOfflineAlert = true
+           }
+       }
+
+       .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+           Button("OK", role: .cancel) { }
+       } message: {
+           Text("Please check your internet connection and try again.")
+       }
        
    }
    

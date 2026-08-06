@@ -22,6 +22,9 @@ class MedicationOverviewViewModel: ObservableObject {
     @Published var isLoading: Bool = false            // full-screen skeleton, first page only
     @Published var isLoadingMoreUpcoming: Bool = false // bottom loader - upcoming
     @Published var isLoadingMoreHistory: Bool = false  // bottom loader - history
+    
+    @Published var errorMessage: String?     // NEW
+    @Published var isOffline = false         // NEW
  
     // MARK: - Pagination tracking
  
@@ -86,6 +89,8 @@ class MedicationOverviewViewModel: ObservableObject {
             }
         } else {
             isLoading = true
+            errorMessage = nil   // NEW: clear stale error on a fresh first-page load
+            isOffline = false    // NEW
         }
  
         MedicationOverviewAPICaller.shared.fetchMedicationOverview(
@@ -110,6 +115,11 @@ class MedicationOverviewViewModel: ObservableObject {
  
                 case .failure(let error):
                     print("❌ MEDICATION OVERVIEW FETCH ERROR — type: \(type), page: \(nextPage), error: \(error)")
+                    if case .noInternet = error {         // NEW
+                        self.isOffline = true
+                    } else {
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }
@@ -196,7 +206,7 @@ class MedicationOverviewViewModel: ObservableObject {
         hasMoreUpcoming = true
         isLoadingMoreUpcoming = false
     }
- 
+
     func resetHistory() {
         historyItems = []
         historyCurrentPage = 1

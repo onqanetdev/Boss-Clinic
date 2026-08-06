@@ -14,11 +14,13 @@ final class DashboardViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var dashboardResponse: DashboardResponse?
     @Published var errorMessage: String?
+    @Published var isOffline = false   // NEW: drive a distinct offline UI
 
     func fetchDashboard() {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false
 
         DashboardAPICaller.shared.fetchDashboard { [weak self] result in
 
@@ -33,19 +35,19 @@ final class DashboardViewModel: ObservableObject {
                 self.dashboardResponse = response
 
                 print("✅ Dashboard Loaded Successfully")
-                print("📄 Message: \(response.message)")
-                print("💊 Next Medication: \(response.data.nextMedication?.name ?? "No Medication name Found")")
-                print("📅 Today's Schedule Count: \(response.data.todaySchedule.count)")
-                print("🔔 Refill Reminder Count: \(response.data.refillReminders.count)")
 
             case .failure(let error):
 
-                self.errorMessage = error.localizedDescription
+                if case .noInternet = error {
+                    self.isOffline = true
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
 
-                print("❌ Dashboard Error")
-                print(error.localizedDescription)
+                print("❌ Dashboard Error: \(error)")
             }
         }
     }
 }
+
 

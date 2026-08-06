@@ -19,6 +19,15 @@ class NotificationSettingsUpdateAPICaller {
         vibration: Bool,
         completion: @escaping (Result<NotificationSettingUpdateModel, NetworkError>) -> Void
     ) {
+        
+        // ✅ Internet check
+        guard NetworkMonitor.shared.isConnected else {
+            DispatchQueue.main.async {
+                completion(.failure(.noInternet))
+            }
+            return
+        }
+        
 
         let urlString = baseURL + APIEndpoint.notificationSettings.rawValue
 

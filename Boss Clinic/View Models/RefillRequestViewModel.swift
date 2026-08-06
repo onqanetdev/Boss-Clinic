@@ -9,13 +9,12 @@ import Foundation
 
 
 
-
-
 final class RefillRequestViewModel: ObservableObject {
 
     @Published var isLoading = false
     @Published var refillRequestResponse: RefillRequestResponse?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
 
     func requestRefill(
         medicationID: String,
@@ -24,6 +23,7 @@ final class RefillRequestViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false   // NEW
 
         RefillRequestAPICaller.shared.requestRefill(
             medicationID: medicationID,
@@ -61,6 +61,8 @@ final class RefillRequestViewModel: ObservableObject {
 
                 case .unauthorized:
                     self.errorMessage = "Your session has expired. Please log in again."
+                case .noInternet:
+                    self.errorMessage = "No Internet Connection"
                 }
             }
         }

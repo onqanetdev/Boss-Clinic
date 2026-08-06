@@ -34,7 +34,7 @@ struct SignUpView: View {
     @StateObject private var verifyOTPVM = VerifyOTPViewModel()
  
     @StateObject private var fcmVM = FCMViewModel()
-    
+    @State private var showOfflineAlert = false
     
     var body: some View {
         ZStack {
@@ -148,6 +148,27 @@ struct SignUpView: View {
                 }
             }
         }
+        .onChange(of: verifyOTPVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: registerVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: fcmVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
+        }
+        
         .onChange(of: registerVM.isRegistrationSuccessful) { success in
             if success {
                 withAnimation {

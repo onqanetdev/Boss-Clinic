@@ -16,6 +16,7 @@ final class NewsletterViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var newsletterResponse: NewsletterResponse?
     @Published var errorMessage: String?
+    @Published var isOffline: Bool = false   // NEW
 
     private let apiCaller = NewsletterAPICaller.shared
 
@@ -23,6 +24,7 @@ final class NewsletterViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        isOffline = false   // NEW
 
         apiCaller.fetchNewsletters { [weak self] result in
 
@@ -40,7 +42,12 @@ final class NewsletterViewModel: ObservableObject {
 
                 case .failure(let error):
 
-                    self.errorMessage = error.localizedDescription
+                    //self.errorMessage = error.localizedDescription
+                    if case .noInternet = error {      // NEW
+                        self.isOffline = true
+                    } else {
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }

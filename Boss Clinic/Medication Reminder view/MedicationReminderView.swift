@@ -20,6 +20,8 @@ struct MedicationReminderView: View {
     // Auto-dismiss countdown
     @State private var remainingSeconds: Int = 10 * 60 // 10 minutes
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    
  
     var body: some View {
         ZStack {

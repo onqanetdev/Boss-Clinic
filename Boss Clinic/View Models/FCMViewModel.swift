@@ -15,12 +15,14 @@ final class FCMViewModel: ObservableObject {
     @Published var fcmResponse: FCMModel?
     @Published var errorMessage: String?
     @Published var isFCMTokenSaved = false
+    @Published var isOffline: Bool = false   // NEW
     
     func saveFCMToken(_ token: String) {
         
         isLoading = true
         errorMessage = nil
         isFCMTokenSaved = false
+        isOffline = false   // NEW
         
         FCMAPICaller.shared.saveFCMToken(fcmToken: token) { [weak self] result in
             
@@ -37,7 +39,12 @@ final class FCMViewModel: ObservableObject {
                 print(response.message)
                 
             case .failure(let error):
-                self.errorMessage = error.localizedDescription
+                //self.errorMessage = error.localizedDescription
+                if case .noInternet = error {      // NEW
+                    self.isOffline = true
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
             }
         }
     }

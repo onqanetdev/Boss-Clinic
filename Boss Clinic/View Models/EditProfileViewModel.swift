@@ -12,25 +12,27 @@ import Foundation
 
 @MainActor
 class EditProfileViewModel: ObservableObject {
-
+    
     @Published var isLoading: Bool = false
     @Published var profileEditResponse: ProfileEditModel? = nil
     @Published var errorMessage: String? = nil
     @Published var isProfileUpdated: Bool = false
-
+    @Published var isOffline: Bool = false   // NEW
+    
     // MARK: - Update Profile
-
+    
     func updateProfile(
         name: String,
         gender: String,
         phoneReceived: String,
         address: String
     ) {
-
+        
         isLoading = true
         errorMessage = nil
         isProfileUpdated = false
-
+        isOffline = false   // NEW
+        
         EditProfileAPICaller.shared.updateProfile(
             name: name,
             gender: gender,
@@ -38,29 +40,32 @@ class EditProfileViewModel: ObservableObject {
             phone: phoneReceived
             
         ) { [weak self] result in
-
+            
             guard let self = self else { return }
-
+            
             self.isLoading = false
-
+            
             switch result {
-
+                
             case .success(let response):
-
+                
                 self.profileEditResponse = response
                 self.isProfileUpdated = true
-
+                
                 print("✅ \(response.message)")
                 print("👤 Name: \(response.data.name)")
                 print("📧 Email: \(response.data.email)")
-
+                
             case .failure(let error):
-
+                
                 switch error {
-
+                    
+                case .noInternet:            // NEW
+                    self.isOffline = true
+                    
                 case .validationError(let message):
                     self.errorMessage = message
-
+                    
                 default:
                     self.errorMessage = error.localizedDescription
                 }

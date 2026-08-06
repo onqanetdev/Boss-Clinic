@@ -61,7 +61,7 @@ final class ContactUsAPICaller {
                 return
             }
 
-            print("📌 CONTACT STATUS CODE:", httpResponse.statusCode)
+           // print("📌 CONTACT STATUS CODE:", httpResponse.statusCode)
 
             guard let data = data else {
                 DispatchQueue.main.async {
@@ -71,7 +71,7 @@ final class ContactUsAPICaller {
             }
 
             if let json = String(data: data, encoding: .utf8) {
-                print("📌 CONTACT RESPONSE:", json)
+                //print("📌 CONTACT RESPONSE:", json)
             }
 
             switch httpResponse.statusCode {

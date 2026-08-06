@@ -16,6 +16,14 @@ class MedicationListAPICaller {
         completion: @escaping (Result<ActiveMedicationResponse, NetworkError>) -> Void
     ) {
 
+        // ✅ Internet check
+        guard NetworkMonitor.shared.isConnected else {
+            DispatchQueue.main.async {
+                completion(.failure(.noInternet))
+            }
+            return
+        }
+
         let urlString = baseURL + APIEndpoint.medication.rawValue
 
         guard let url = URL(string: urlString) else {
@@ -89,7 +97,7 @@ class MedicationListAPICaller {
 
                 // Token is invalid/expired — clear it and kick the user back to login.
                 SessionManager.shared.logout()
-                
+
                 DispatchQueue.main.async {
                     completion(.failure(.validationError("Session expired. Please login again.")))
                 }
