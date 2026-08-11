@@ -76,7 +76,7 @@ private extension NotificationDetailScreen {
                         .font(.custom("Inter18pt-SemiBold", size: 18))
                         .foregroundColor(.white)
 
-                    Text(notification.notificationCategory.capitalized ?? "")
+                    Text(notification.notificationCategory?.capitalized ?? "")
                         .font(.custom("Inter18pt-Regular", size: 13))
                         .foregroundColor(.gray)
                 }

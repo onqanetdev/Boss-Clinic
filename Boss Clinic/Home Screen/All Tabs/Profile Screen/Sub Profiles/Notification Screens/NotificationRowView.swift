@@ -23,11 +23,11 @@ struct NotificationRowView: View {
 
                VStack(alignment: .leading, spacing: 14) {
 
-                   Text(notification.title)
+                   Text(notification.title ?? "No Title")
                        .font(.custom("Inter18pt-SemiBold", size: 18))
                        .foregroundColor(.white)
 
-                   Text(notification.message)
+                   Text(notification.message ?? "")
                        .font(.custom("Inter18pt-Regular", size: 16))
                        .foregroundColor(.gray)
                        .fixedSize(horizontal: false, vertical: true)
