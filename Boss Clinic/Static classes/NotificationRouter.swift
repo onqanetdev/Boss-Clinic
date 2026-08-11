@@ -8,65 +8,18 @@
 import Foundation
 
 
-
-
-/// Bridges UIKit-land (AppDelegate's notification delegate methods) into SwiftUI.
-/// AppDelegate sets `pendingDoseReminder` when a dose-reminder notification is tapped;
-/// your root view observes this object and presents a full-screen cover when it's non-nil.
-//final class NotificationRouter: ObservableObject {
-//
-//   static let shared = NotificationRouter()
-//
-//   @Published var pendingDoseReminder: DoseReminder?
-//
-//   private init() {}
-//
-//   /// Call this from AppDelegate's `didReceive response:` handler.
-//   func handleNotificationTap(userInfo: [AnyHashable: Any]) {
-//       guard let type = userInfo["type"] as? String else { return }
-//
-//       switch type {
-//       case "dose_reminder":
-//           guard
-//               let medicationId = userInfo["medicationId"] as? String,
-//               let medicationName = userInfo["medicationName"] as? String
-//           else { return }
-//
-//           let dosageText = userInfo["dosageText"] as? String ?? ""
-//           let scheduledTime = userInfo["scheduledTime"] as? String ?? ""
-//
-//           DispatchQueue.main.async {
-//               self.pendingDoseReminder = DoseReminder(
-//                   id: medicationId,
-//                   medicationName: medicationName,
-//                   dosageText: dosageText,
-//                   scheduledTime: scheduledTime
-//               )
-//           }
-//
-//       case "refill_reminder":
-//           // TODO: route to Medications tab instead, if you want different
-//           // handling for refill vs. dose-time notifications.
-//           break
-//
-//       default:
-//           break
-//       }
-//   }
-//}
-
-//import Foundation
- 
  
 
 /// Bridges UIKit-land (AppDelegate's notification delegate methods) into SwiftUI.
 /// AppDelegate sets `pendingDoseReminder` when a dose-reminder notification is tapped;
 /// your root view observes this object and presents a full-screen cover when it's non-nil.
+/// presents a full-screen cover when either becomes non-nil.
 final class NotificationRouter: ObservableObject {
  
     static let shared = NotificationRouter()
  
     @Published var pendingDoseReminder: DoseReminder?
+    @Published var pendingAppointment: AppointmentReminder?
  
     private init() {}
  
@@ -96,6 +49,30 @@ final class NotificationRouter: ObservableObject {
                     medicationName: medicationName,
                     dosageText: dosageText,
                     scheduledTime: scheduledTime
+                )
+            }
+ 
+        case "appointment":
+ 
+            guard let appointmentId = stringValue(userInfo["appointment_id"]) else { return }
+ 
+            let doctorName = stringValue(userInfo["doctor_name"]) ?? ""
+            let appointmentDate = stringValue(userInfo["appointment_date"]) ?? ""
+            let appointmentTime = stringValue(userInfo["appointment_time"]) ?? ""
+ 
+            // doctor_name can arrive empty depending on which appointment
+            // event fired (booked vs. reminder) — the alert body is always
+            // fully composed server-side, so pull it through as the
+            // primary display text.
+            let bodyMessage = alertBody(from: userInfo) ?? ""
+ 
+            DispatchQueue.main.async {
+                self.pendingAppointment = AppointmentReminder(
+                    id: appointmentId,
+                    doctorName: doctorName,
+                    appointmentDate: appointmentDate,
+                    appointmentTime: appointmentTime,
+                    bodyMessage: bodyMessage
                 )
             }
  

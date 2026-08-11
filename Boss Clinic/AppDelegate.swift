@@ -78,32 +78,78 @@ extension AppDelegate: MessagingDelegate {
  
 // MARK: - UNUserNotificationCenterDelegate
  
+
 extension AppDelegate: UNUserNotificationCenterDelegate {
-    
+ 
+    /// Called when a push arrives WHILE THE APP IS OPEN (foreground).
+    /// Prints title/body/subtitle plus the custom "data" payload your
+    /// Laravel backend attaches (medication_log_id, medication_id, type).
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        // TEMP DEBUG — remove once sound issue is confirmed fixed.
-        print("📩 Full payload: \(notification.request.content.userInfo)")
+        printNotificationDetails(from: notification.request.content, context: "FOREGROUND (willPresent)")
  
         completionHandler([.banner, .list, .sound, .badge])
     }
-    
+ 
+    /// Called when the user TAPS a notification (app was backgrounded or
+    /// not running). Same detail print, plus the action identifier.
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
+        printNotificationDetails(from: response.notification.request.content, context: "TAPPED (didReceive)")
+        print("Action identifier: \(response.actionIdentifier)")
+ 
         let userInfo = response.notification.request.content.userInfo
-        print("Notification tapped with payload: \(userInfo)")
-        
         NotificationRouter.shared.handleNotificationTap(userInfo: userInfo)
-        
+ 
         completionHandler()
     }
+ 
+    /// Pulls apart the notification content and prints it in a readable
+    /// block: standard fields (title/body/subtitle/sound/badge) plus
+    /// whatever custom key/value pairs came through in "data" (everything
+    /// FCM puts outside the "notification" block lands directly in
+    /// userInfo as top-level string keys).
+    private func printNotificationDetails(from content: UNNotificationContent, context: String) {
+        print("========== 📩 NOTIFICATION [\(context)] ==========")
+        print("Content type: \(type(of: content))")
+        print("Title:    \(content.title)")
+        print("Subtitle: \(content.subtitle)")
+        print("Body:     \(content.body)")
+        print("Badge:    \(content.badge?.stringValue ?? "nil")")
+        print("Sound:    \(String(describing: content.sound))")
+ 
+        let userInfo = content.userInfo
+        print("--- Full userInfo (includes custom data payload) ---")
+        for (key, value) in userInfo {
+            print("  \(key): \(value)")
+        }
+ 
+        // FCM nests some values under "aps" (the raw APNs payload) and
+        // "gcm.notification.*" / "google.c.*" internal keys — filter those
+        // out to isolate just YOUR custom data fields (medication_log_id,
+        // medication_id, type, etc. from SendMedicationPushNotificationsJob).
+        let customDataKeys = userInfo.keys.filter { key in
+            let k = "\(key)"
+            return !k.hasPrefix("aps")
+                && !k.hasPrefix("gcm.")
+                && !k.hasPrefix("google.")
+        }
+        if !customDataKeys.isEmpty {
+            print("--- Custom data fields only ---")
+            for key in customDataKeys {
+                print("  \(key): \(userInfo[key] ?? "nil")")
+            }
+        }
+        print("=====================================================")
+    }
 }
+
  
 // MARK: - Token persistence
  
@@ -150,5 +196,4 @@ final class NotificationTokenManager {
             }
     }
 }
-
 

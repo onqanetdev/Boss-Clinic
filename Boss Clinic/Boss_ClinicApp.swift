@@ -22,19 +22,19 @@ struct BossClinicApp: App {
         WindowGroup {
             //FlipCardsView()
             RootView()
-                .fullScreenCover(item: $notificationRouter.pendingDoseReminder) { reminder in
-                    MedicationReminderView(
-                        reminder: reminder,
-                        onTakeNow: {
-                            // TODO: mark this dose as taken — e.g. decrement
-                            // quantityRemaining in Firestore for this medication
-                        },
-                        onSnooze: {
-                            // TODO: schedule a follow-up local notification a few
-                            // minutes from now for the same medication
-                        }
-                    )
-                }
+//                .fullScreenCover(item: $notificationRouter.pendingDoseReminder) { reminder in
+//                    MedicationReminderView(
+//                        reminder: reminder,
+//                        onTakeNow: {
+//                            // TODO: mark this dose as taken — e.g. decrement
+//                            // quantityRemaining in Firestore for this medication
+//                        },
+//                        onSnooze: {
+//                            // TODO: schedule a follow-up local notification a few
+//                            // minutes from now for the same medication
+//                        }
+//                    )
+//                }
         }
     }
 }

@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 
+
 struct RootView: View {
  
     @StateObject private var session = SessionManager.shared
@@ -44,10 +45,19 @@ struct RootView: View {
                 onTakeNow: {
                     // TODO: mark this dose as taken — e.g. decrement
                     // quantityRemaining in Firestore for this medication
+ 
                 },
                 onSnooze: {
                     // TODO: schedule a follow-up local notification a few
                     // minutes from now for the same medication
+                }
+            )
+        }
+        .fullScreenCover(item: $notificationRouter.pendingAppointment) { reminder in
+            AppointmentReminderView(
+                reminder: reminder,
+                onDismiss: {
+                    notificationRouter.pendingAppointment = nil
                 }
             )
         }
@@ -57,4 +67,3 @@ struct RootView: View {
 #Preview {
     RootView()
 }
- 
