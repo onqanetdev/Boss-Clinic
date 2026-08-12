@@ -19,95 +19,103 @@ struct Medication: Identifiable, Hashable {
 // MARK: - Screen
  
 struct AppointmentScreen: View {
- 
+
     @State private var showAddMedication = false
-    //@State private var selectedMedication: ActiveMedication?
-    
-   // @State private var expandedMedicationID: ActiveMedication?
-    
     @State private var selectedMedication: ActiveMedication?
-    
+
     @StateObject private var medicationVM = MedicationListViewModel()
- 
-    @State private var medications: [ActiveMedication] = []
-    
+
     @State private var showOfflineAlert = false
-    
+
     var body: some View {
-        
+
         ZStack {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-     
-                    // MARK: Title + Add button
-                    HStack {
-                        Text("All Medications")
-                            .font(.custom("Inter24pt-Bold", size: 23 ))
-                            .foregroundColor(.white)
-     
-                        Spacer()
-                    }
-                    .padding(.top, 20)
-                    .padding(.bottom, 16)
-     
-                    Divider()
-                        .background(Color.white.opacity(0.2))
-     
-                    // MARK: Medication list
-                    if medications.isEmpty {
-                        emptyState
-                    } else {
-                        
-                        ForEach(medications) { medication in
-                            MedicationRow(medication: medication) {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    selectedMedication = medication
+
+            Color.black.ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 0) {
+
+                // MARK: Title + Add button
+                HStack {
+                    Text("All Medications")
+                        .font(.custom("Inter24pt-Bold", size: 23 ))
+                        .foregroundColor(.white)
+
+                    Spacer()
+                }
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+                .padding(.horizontal, 20)
+
+                Divider()
+                    .background(Color.white.opacity(0.2))
+                    .padding(.horizontal, 20)
+
+                if medicationVM.medications.isEmpty && !medicationVM.isLoading {
+
+                    emptyState
+
+                } else {
+
+                    ScrollView(showsIndicators: false) {
+
+                        LazyVStack(spacing: 0) {
+
+                            ForEach(medicationVM.medications) { medication in
+
+                                MedicationRow(medication: medication) {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedMedication = medication
+                                    }
                                 }
+                                .padding(.horizontal, 20)
+                                .onAppear {
+                                    medicationVM.fetchNextPageIfNeeded(currentItem: medication)
+                                }
+
+                                Divider()
+                                    .background(Color.white.opacity(0.2))
+                                    .padding(.horizontal, 20)
                             }
 
-                            Divider()
-                                .background(Color.white.opacity(0.2))
+                            if medicationVM.isLoadingMore {
+
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .padding(.vertical, 16)
+                                    .frame(maxWidth: .infinity)
+                            }
                         }
-                        //For Each Ending
-                        
+                        .padding(.bottom, 20)
                     }
-     
-                    Spacer(minLength: 40)
                 }
-                .padding(.horizontal, 20)
             }
 
-            
             if medicationVM.isLoading {
 
-                
                 MedicationSkeletonScreen()
-                
             }
-            
-            
-            // MARK: Popup overlay
-                if let medication = selectedMedication {
-                    Color.black.opacity(0.6)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                selectedMedication = nil
-                            }
-                        }
-                        .transition(.opacity)
 
-                    MedicationDetailCard(medication: medication) {
+            // MARK: Popup overlay
+            if let medication = selectedMedication {
+                Color.black.opacity(0.6)
+                    .ignoresSafeArea()
+                    .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             selectedMedication = nil
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.opacity)
+
+                MedicationDetailCard(medication: medication) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedMedication = nil
+                    }
                 }
-            
+                .padding(.horizontal, 20)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
-        .background(Color.black.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showAddMedication) {
             Text("Add Medication")
@@ -115,44 +123,35 @@ struct AppointmentScreen: View {
                 .background(Color.black.ignoresSafeArea())
         }
         .onAppear {
-            medicationVM.fetchMedicationList()
-            
+            medicationVM.fetchMedicationList(pageNumber: 0, perPageContent: 10, reset: true)
+
             if let accessToken = UserDefaults.standard.string(forKey: "accessToken") {
-                    print("✅ Access Token: \(accessToken)")
-                } else {
-                    print("❌ Access Token not found")
-                }
-        }
-        .onChange(of: medicationVM.medicationResponse) { response in
-
-            guard let response else { return }
-
-            medications = response.data
-            
-            
+                print("✅ Access Token: \(accessToken)")
+            } else {
+                print("❌ Access Token not found")
+            }
         }
         .onChange(of: medicationVM.isOffline) { offline in
             if offline {
-                showOfflineAlert = true   // or toggle a banner
+                showOfflineAlert = true
             }
         }
-        
         .alert("No Internet Connection", isPresented: $showOfflineAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Please check your internet connection and try again.")
         }
     }
- 
+
     // MARK: - Empty state
- 
+
     private var emptyState: some View {
         VStack(spacing: 10) {
             ZStack {
                 Circle()
                     .fill(Color.white.opacity(0.08))
                     .frame(width: 72, height: 72)
- 
+
                 Image(systemName: "pills")
                     .resizable()
                     .scaledToFit()
@@ -160,11 +159,11 @@ struct AppointmentScreen: View {
                     .foregroundColor(.white.opacity(0.6))
             }
             .padding(.bottom, 4)
- 
+
             Text("No medications yet")
                 .font(.custom("Inter18pt-SemiBold", size: 17))
                 .foregroundColor(.white)
- 
+
             Text("Tap the + button above to add your first medication.")
                 .font(.custom("Inter18pt-Regular", size: 14))
                 .foregroundColor(Color.white.opacity(0.5))
@@ -175,6 +174,7 @@ struct AppointmentScreen: View {
         .padding(.top, 60)
     }
 }
+
  
 // MARK: - Row
  

@@ -11,12 +11,48 @@ import Foundation
 struct ActiveMedicationResponse: Codable, Equatable {
     let success: Bool
     let message: String
-    let data: [ActiveMedication]
+    let data: ActiveMedicationDataWrapper
 }
+
+struct ActiveMedicationDataWrapper: Codable, Equatable {
+    let medications: [ActiveMedication]
+    let meta: MedicationMeta
+}
+
+struct MedicationMeta: Codable, Equatable {
+    let currentPage: Int
+    let lastPage: Int
+    let perPage: Int
+    let total: Int
+    let from: Int?
+    let to: Int?
+    let firstPage: Int
+    let firstPageUrl: String
+    let lastPageUrl: String
+    let prevPage: Int?
+    let prevPageUrl: String?
+    let nextPage: Int?
+    let nextPageUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case currentPage = "current_page"
+        case lastPage = "last_page"
+        case perPage = "per_page"
+        case total, from, to
+        case firstPage = "first_page"
+        case firstPageUrl = "first_page_url"
+        case lastPageUrl = "last_page_url"
+        case prevPage = "prev_page"
+        case prevPageUrl = "prev_page_url"
+        case nextPage = "next_page"
+        case nextPageUrl = "next_page_url"
+    }
+}
+
 
 // MARK: - Medication
 
-struct ActiveMedication: Codable,Hashable, Identifiable {
+struct ActiveMedication: Codable, Hashable, Identifiable {
     let id: String
     let userId: String
     let name: String

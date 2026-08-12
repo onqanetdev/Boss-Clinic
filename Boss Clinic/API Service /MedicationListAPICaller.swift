@@ -13,6 +13,8 @@ class MedicationListAPICaller {
     static let shared = MedicationListAPICaller()
 
     func fetchMedicationList(
+        page: Int,
+        perPage: Int,
         completion: @escaping (Result<ActiveMedicationResponse, NetworkError>) -> Void
     ) {
 
@@ -38,9 +40,17 @@ class MedicationListAPICaller {
         }
 
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        request.httpMethod = "POST"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "page": page,
+            "per_page": perPage
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
 
@@ -66,7 +76,7 @@ class MedicationListAPICaller {
             print("📌 MEDICATION LIST STATUS CODE: \(httpResponse.statusCode)")
 
             if let json = String(data: data, encoding: .utf8) {
-                print("📌 MEDICATION LIST RESPONSE: \(json)")
+               // print("📌 MEDICATION LIST RESPONSE: \(json)")
             }
 
             switch httpResponse.statusCode {
