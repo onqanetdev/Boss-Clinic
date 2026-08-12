@@ -13,6 +13,8 @@ class NotificationAPICaller {
     static let shared = NotificationAPICaller()
     
     func fetchNotifications(
+        page: Int ,
+        perPage: Int,
         completion: @escaping (Result<NotificationResponse, NetworkError>) -> Void
     ) {
         
@@ -43,6 +45,13 @@ class NotificationAPICaller {
             // Token is invalid/expired — clear it and kick the user back to login.
             SessionManager.shared.logout()
         }
+        
+        let body: [String: Any] = [
+            "page": page,
+            "per_page": perPage
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             
@@ -110,5 +119,4 @@ class NotificationAPICaller {
         }.resume()
     }
 }
-
 

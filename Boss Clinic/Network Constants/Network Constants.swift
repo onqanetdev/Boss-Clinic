@@ -23,7 +23,7 @@ enum APIEndpoint: String {
     case medicationOverview = "medication-overview"
     case reminderTakenByTime = "reminders/take-by-time"
     case refillRequest = "refill-request"
-    case notificationList = "notification-list"
+    case notificationList = "notifications"
     case logout = "logout"
     case notificationCount = "count-notification"
     case readNotification = "read-notification"

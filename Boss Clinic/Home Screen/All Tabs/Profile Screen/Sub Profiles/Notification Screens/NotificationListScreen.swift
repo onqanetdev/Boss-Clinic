@@ -14,7 +14,6 @@ struct NotificationListScreen: View {
     @StateObject private var notificationVM = NotificationViewModel()
     @StateObject private var notificationReadVM = NotificationReadViewModel()
 
-    @State private var notifications: [NotificationItem] = []
     @State private var selectedNotification: NotificationItem?
     @State private var showOfflineAlert = false
 
@@ -29,7 +28,7 @@ struct NotificationListScreen: View {
 
                 headerView
 
-                if notifications.isEmpty {
+                if notificationVM.notifications.isEmpty && !notificationVM.isLoading {
 
                     Spacer()
 
@@ -45,7 +44,7 @@ struct NotificationListScreen: View {
 
                         LazyVStack(spacing: 18) {
 
-                            ForEach(notifications) { notification in
+                            ForEach(notificationVM.notifications) { notification in
 
                                 NotificationRowView(notification: notification) {
 
@@ -55,6 +54,17 @@ struct NotificationListScreen: View {
 
                                     selectedNotification = notification
                                 }
+                                .onAppear {
+                                    notificationVM.fetchNextPageIfNeeded(currentItem: notification)
+                                }
+                            }
+
+                            if notificationVM.isLoadingMore {
+
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .padding(.vertical, 16)
+                                    .frame(maxWidth: .infinity)
                             }
                         }
                         .padding(.bottom, 20)
@@ -65,7 +75,6 @@ struct NotificationListScreen: View {
             .padding(.top, 10)
 
             if notificationVM.isLoading || notificationReadVM.isLoading {
-                
 
                 NotificationSkeletonScreen()
             }
@@ -87,23 +96,15 @@ struct NotificationListScreen: View {
             Text("Please check your internet connection and try again.")
         }
         .onAppear {
-            notificationVM.fetchNotifications()
-            //print("Notification Details -> ", notificationVM.notificationResponse?.data)
+            notificationVM.fetchNotifications(reset: true)
         }
-        .onChange(of: notificationVM.notificationResponse) { response in
-
-            guard let response else { return }
-
-            notifications = response.data ?? []
-        }
-        
         .onChange(of: notificationReadVM.notificationReadResponse) { response in
 
             guard let response else { return }
 
             print(response.message)
 
-            notificationVM.fetchNotifications()
+            notificationVM.fetchNotifications(reset: true)
         }
         .onChange(of: notificationReadVM.errorMessage) { error in
 
@@ -111,7 +112,6 @@ struct NotificationListScreen: View {
 
             print(error)
         }
-        
         .navigationDestination(item: $selectedNotification) { notification in
             NotificationDetailScreen(notification: notification)
         }
@@ -140,5 +140,4 @@ struct NotificationListScreen: View {
         }
     }
 }
-
 
