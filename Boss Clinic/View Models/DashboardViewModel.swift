@@ -16,13 +16,13 @@ final class DashboardViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isOffline = false   // NEW: drive a distinct offline UI
 
-    func fetchDashboard() {
+    func fetchDashboard(pageNo: Int, pageElements: Int) {
 
         isLoading = true
         errorMessage = nil
         isOffline = false
 
-        DashboardAPICaller.shared.fetchDashboard { [weak self] result in
+        DashboardAPICaller.shared.fetchDashboard(page: pageNo, perPage: pageElements) { [weak self] result in
 
             guard let self = self else { return }
 

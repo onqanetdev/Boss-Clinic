@@ -6,12 +6,13 @@
 //
 
 import Foundation
-
 class DashboardAPICaller {
 
     static let shared = DashboardAPICaller()
 
     func fetchDashboard(
+        page: Int,
+        perPage: Int,
         completion: @escaping (Result<DashboardResponse, NetworkError>) -> Void
     ) {
 
@@ -38,9 +39,17 @@ class DashboardAPICaller {
         }
 
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        request.httpMethod = "POST"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "page": page,
+            "per_page": perPage
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
 
@@ -102,4 +111,3 @@ class DashboardAPICaller {
         }.resume()
     }
 }
-
