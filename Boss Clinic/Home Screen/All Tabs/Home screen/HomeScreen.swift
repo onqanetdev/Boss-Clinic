@@ -334,10 +334,10 @@ struct NotificationBellButton: View {
                     .foregroundColor(.white)
 
                 if count > 0 {
-                    Text("\(count)")
-                        .font(.system(size: 10, weight: .bold))
+                    Text(count > 99 ? "99+" : "\(count)")
+                        .font(.system(size: 8, weight: .bold))
                         .foregroundColor(.white)
-                        .frame(minWidth: 18, minHeight: 18)
+                        .frame(minWidth: 20, minHeight: 20)
                         .background(Color.red)
                         .clipShape(Circle())
                         .offset(x: 6, y: -6)
