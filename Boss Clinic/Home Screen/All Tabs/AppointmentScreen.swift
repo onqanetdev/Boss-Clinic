@@ -89,7 +89,8 @@ struct AppointmentScreen: View {
                         .padding(.bottom, 20)
                     }
                 }
-            }
+            } .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            // vstack Ending
 
             if medicationVM.isLoading {
 
@@ -146,33 +147,34 @@ struct AppointmentScreen: View {
     // MARK: - Empty state
 
     private var emptyState: some View {
-        VStack(spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 72, height: 72)
-
-                Image(systemName: "pills")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 28, height: 28)
-                    .foregroundColor(.white.opacity(0.6))
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.08))
+                        .frame(width: 72, height: 72)
+     
+                    Image(systemName: "pills")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+                        .foregroundColor(.white.opacity(0.6))
+                }
+                .padding(.bottom, 4)
+     
+                Text("No medications yet")
+                    .font(.custom("Inter18pt-SemiBold", size: 17))
+                    .foregroundColor(.white)
+     
+                Text("Tap the + button above to add your first medication.")
+                    .font(.custom("Inter18pt-Regular", size: 14))
+                    .foregroundColor(Color.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
             }
-            .padding(.bottom, 4)
-
-            Text("No medications yet")
-                .font(.custom("Inter18pt-SemiBold", size: 17))
-                .foregroundColor(.white)
-
-            Text("Tap the + button above to add your first medication.")
-                .font(.custom("Inter18pt-Regular", size: 14))
-                .foregroundColor(Color.white.opacity(0.5))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.top, 60)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
-    }
+
 }
 
  
