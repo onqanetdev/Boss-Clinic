@@ -119,4 +119,3 @@ class NotificationAPICaller {
         }.resume()
     }
 }
-

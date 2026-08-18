@@ -21,7 +21,7 @@ struct NotificationReadResponse: Codable, Equatable {
 struct NotificationReadData: Codable, Equatable {
     let id: String
     let userId: String
-    let type: String
+    let type: String?
  
     // Can arrive null for some notification types (e.g.
     // MissedMedicationNotification) — see NotificationItem for the
@@ -31,11 +31,11 @@ struct NotificationReadData: Codable, Equatable {
     let notificationCategory: String?
  
     let data: NotificationReferenceData?
-    let isRead: Bool
+    let isRead: Bool?
     let readAt: String?
     let actionURL: String?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
  
     enum CodingKeys: String, CodingKey {
         case id
