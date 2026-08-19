@@ -79,9 +79,9 @@ struct ProfileScreen: View {
                           showNotificationSettings = true
                       }
 
-                      ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Reminder Settings") {
-                          showReminderSettings = true
-                      }
+//                      ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Reminder Settings") {
+//                          showReminderSettings = true
+//                      }
 
                       ProfileRow(icon: .system("questionmark.circle"), title: "Help & Support") {
                           showHelpSupport = true

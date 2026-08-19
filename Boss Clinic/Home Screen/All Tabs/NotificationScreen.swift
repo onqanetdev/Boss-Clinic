@@ -265,9 +265,17 @@ struct NotificationScreen: View {
    }
 
    private func loadData() {
-       if viewModel.upcomingItems.isEmpty {
+      // print("Reload Data✋🏼✋🏼")
+       //if viewModel.upcomingItems.isEmpty {
+           //viewModel.fetchMedicationOverview(type: "upcoming")
+       //}
+       
+       // Always reset to the Upcoming tab on appear
+           selectedTab = .upcoming
+
+           // Always clear any existing upcoming state and refetch fresh
+           viewModel.resetUpcoming()
            viewModel.fetchMedicationOverview(type: "upcoming")
-       }
    }
 }
 

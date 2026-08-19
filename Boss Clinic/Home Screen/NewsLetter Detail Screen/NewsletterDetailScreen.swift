@@ -51,6 +51,7 @@ struct NewsletterDetailScreen: View {
                         .lineSpacing(4)
                 }
                 .padding(.horizontal, 4)
+                .padding(.leading, 8)
             }
             .padding()
         }

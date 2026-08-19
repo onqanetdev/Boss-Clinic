@@ -88,8 +88,12 @@ struct AppointmentScreen: View {
                         }
                         .padding(.bottom, 20)
                     }
+                    .refreshable {
+                        await medicationVM.refreshMedicationList()
+                    }
                 }
             } .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.bottom, 50)
             // vstack Ending
 
             if medicationVM.isLoading {
@@ -175,6 +179,7 @@ struct AppointmentScreen: View {
             .padding(.top, 60)
         }
 
+    
 }
 
  

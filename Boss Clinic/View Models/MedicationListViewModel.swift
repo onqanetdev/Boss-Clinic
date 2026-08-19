@@ -13,6 +13,7 @@ final class MedicationListViewModel: ObservableObject {
 
     @Published var isLoading = false        // full-screen initial loader
     @Published var isLoadingMore = false    // bottom-of-list loader
+    @Published var isRefreshing = false     // pull-to-refresh, no skeleton
     @Published var medications: [ActiveMedication] = []
     @Published var errorMessage: String?
     @Published var isOffline = false
@@ -28,16 +29,34 @@ final class MedicationListViewModel: ObservableObject {
 
     /// `reset = true` → fresh load (page resets, array replaced).
     /// `reset = false` → load next page, appended to existing array.
-    func fetchMedicationList(pageNumber: Int = 0, perPageContent: Int = 10, reset: Bool = true) {
+    /// `isPullToRefresh = true` → skip the full-screen skeleton loader.
+    func fetchMedicationList(
+        pageNumber: Int = 0,
+        perPageContent: Int = 10,
+        reset: Bool = true,
+        isPullToRefresh: Bool = false,
+        completion: (() -> Void)? = nil
+    ) {
 
-        guard !isFetching else { return }
+        guard !isFetching else {
+            completion?()
+            return
+        }
 
         if reset {
             currentPage = pageNumber
             perPage = perPageContent
-            isLoading = true
+
+            if isPullToRefresh {
+                isRefreshing = true
+            } else {
+                isLoading = true
+            }
         } else {
-            guard hasMorePages else { return }
+            guard hasMorePages else {
+                completion?()
+                return
+            }
             currentPage += 1
             isLoadingMore = true
         }
@@ -52,6 +71,7 @@ final class MedicationListViewModel: ObservableObject {
 
             self.isLoading = false
             self.isLoadingMore = false
+            self.isRefreshing = false
             self.isFetching = false
 
             switch result {
@@ -61,7 +81,6 @@ final class MedicationListViewModel: ObservableObject {
                 self.lastPage = response.data.meta.lastPage
                 self.currentPage = response.data.meta.currentPage
 
-                // temporary array holding the newly fetched page
                 let newMedications = response.data.medications
 
                 if reset {
@@ -71,7 +90,6 @@ final class MedicationListViewModel: ObservableObject {
                 }
 
                 print("✅ Medication List Loaded Successfully")
-              //  print("💊 Total Medications Now: \(self.medications.count)")
 
             case .failure(let error):
 
@@ -83,11 +101,12 @@ final class MedicationListViewModel: ObservableObject {
 
                 print("❌ Medication List Error: \(error.localizedDescription)")
             }
+
+            completion?()
         }
     }
 
-    /// Call from each row's `.onAppear`. Triggers the next page once the
-    /// user scrolls near the end of the currently loaded list.
+    /// Call from each row's `.onAppear`.
     func fetchNextPageIfNeeded(currentItem: ActiveMedication) {
 
         guard let index = medications.firstIndex(where: { $0.id == currentItem.id }) else { return }
@@ -100,6 +119,15 @@ final class MedicationListViewModel: ObservableObject {
 
         if index >= thresholdIndex, hasMorePages, !isFetching {
             fetchMedicationList(reset: false)
+        }
+    }
+
+    @MainActor
+    func refreshMedicationList() async {
+        await withCheckedContinuation { continuation in
+            fetchMedicationList(pageNumber: 0, perPageContent: 10, reset: true, isPullToRefresh: true) {
+                continuation.resume()
+            }
         }
     }
 }

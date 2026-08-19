@@ -199,7 +199,7 @@ struct SignUpView: View {
             onSignUpSuccess()
         }
         .alert(
-            "Error",
+            "Alert!",
             isPresented: Binding(
                 get: { registerVM.errorMessage != nil },
                 set: { _ in registerVM.errorMessage = nil }
@@ -210,7 +210,7 @@ struct SignUpView: View {
             Text(registerVM.errorMessage ?? "")
         }
         .alert(
-            "Error",
+            "Alert!",
             isPresented: Binding(
                 get: { verifyOTPVM.errorMessage != nil },
                 set: { _ in verifyOTPVM.errorMessage = nil }

@@ -94,6 +94,7 @@ struct HomeScreen: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
+            .padding(.bottom, 20)
         }
         .refreshable {
             await refreshDashboard()
