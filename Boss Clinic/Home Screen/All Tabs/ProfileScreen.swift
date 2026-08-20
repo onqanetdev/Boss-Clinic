@@ -17,7 +17,7 @@ struct ProfileScreen: View {
 
   @State private var showMyProfile = false
   @State private var showNotificationSettings = false
-  @State private var showReminderSettings = false
+  @State private var showAppointmentList = false
   @State private var showHelpSupport = false
   @State private var showPrivacyPolicy = false
 
@@ -79,9 +79,9 @@ struct ProfileScreen: View {
                           showNotificationSettings = true
                       }
 
-//                      ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Reminder Settings") {
-//                          showReminderSettings = true
-//                      }
+                      ProfileRow(icon: .system("clock.arrow.circlepath"), title: "Appointment List") {
+                          showAppointmentList = true
+                      }
 
                       ProfileRow(icon: .system("questionmark.circle"), title: "Help & Support") {
                           showHelpSupport = true
@@ -162,8 +162,9 @@ struct ProfileScreen: View {
       .navigationDestination(isPresented: $showNotificationSettings) {
           NotificationSettingsScreen()
       }
-      .navigationDestination(isPresented: $showReminderSettings) {
-          ReminderScreen()
+      .navigationDestination(isPresented: $showAppointmentList) {
+         // ReminderScreen()
+          AppointmentListScreen()
       }
       .navigationDestination(isPresented: $showHelpSupport) {
           ContactUsScreen()
