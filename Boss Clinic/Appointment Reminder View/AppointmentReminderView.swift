@@ -11,6 +11,19 @@ import SwiftUI
 struct AppointmentReminderView: View {
     let reminder: AppointmentReminder
     var onDismiss: () -> Void = {}
+    
+    private var titleText: String {
+            switch reminder.status.lowercased() {
+            case "rescheduled":
+                return "Appointment Rescheduled"
+            case "completed":
+                return "Appointment Completed"
+            case "cancelled":
+                return "Appointment Cancelled"
+            default: // "scheduled" or any unrecognized value
+                return "Upcoming Appointment"
+            }
+        }
  
     var body: some View {
         ZStack {
@@ -49,7 +62,7 @@ struct AppointmentReminderView: View {
                 .padding(.bottom, 32)
  
                 // Title — bold, 2-line centered
-                Text("Upcoming Appointment")
+                Text(titleText)
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
@@ -128,7 +141,9 @@ struct AppointmentReminderView: View {
             doctorName: "",
             appointmentDate: "2026-08-11",
             appointmentTime: "17:29",
-            bodyMessage: "Your appointment Scheduled at (Tuesday, August 11, 2026 at 17:29)."
+            bodyMessage: "Your appointment Scheduled at (Tuesday, August 11, 2026 at 17:29).", status: "rescheduled"
         )
     )
 }
+
+

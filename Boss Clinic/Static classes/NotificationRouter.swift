@@ -53,26 +53,24 @@ final class NotificationRouter: ObservableObject {
             }
  
         case "appointment":
- 
+
             guard let appointmentId = stringValue(userInfo["appointment_id"]) else { return }
- 
+
             let doctorName = stringValue(userInfo["doctor_name"]) ?? ""
             let appointmentDate = stringValue(userInfo["appointment_date"]) ?? ""
             let appointmentTime = stringValue(userInfo["appointment_time"]) ?? ""
- 
-            // doctor_name can arrive empty depending on which appointment
-            // event fired (booked vs. reminder) — the alert body is always
-            // fully composed server-side, so pull it through as the
-            // primary display text.
+            let status = stringValue(userInfo["status"]) ?? "scheduled"
+
             let bodyMessage = alertBody(from: userInfo) ?? ""
- 
+
             DispatchQueue.main.async {
                 self.pendingAppointment = AppointmentReminder(
                     id: appointmentId,
                     doctorName: doctorName,
                     appointmentDate: appointmentDate,
                     appointmentTime: appointmentTime,
-                    bodyMessage: bodyMessage
+                    bodyMessage: bodyMessage,
+                    status: status
                 )
             }
  

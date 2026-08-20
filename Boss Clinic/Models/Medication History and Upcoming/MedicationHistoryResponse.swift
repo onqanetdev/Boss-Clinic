@@ -34,7 +34,9 @@ struct MedicationHistory: Codable, Identifiable, Equatable {
     let notes: String?
     let takenBy: String?
     let skippedReason: String?
-    let medication: MedicationData
+    let date: String?
+    let day: String?
+    let medication: MedicationData?
     let schedule: ScheduleData?
     let createdAt: String
     let updatedAt: String
@@ -52,6 +54,8 @@ struct MedicationHistory: Codable, Identifiable, Equatable {
         case notes
         case takenBy = "taken_by"
         case skippedReason = "skipped_reason"
+        case date = "date"
+        case day = "day"
         case medication
         case schedule
         case createdAt = "created_at"

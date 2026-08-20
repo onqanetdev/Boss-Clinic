@@ -16,6 +16,15 @@ enum ReminderStatus: String {
    case missed = "Missed"
 }
 
+private struct HistorySection: Identifiable {
+    let id: String          // scheduledDate, used as a stable key
+    let headerLabel: String // "Day, Date" — same style as upcoming
+    let items: [MedicationHistory]
+}
+
+
+
+
 // MARK: - Screen
 
 struct NotificationScreen: View {
@@ -139,41 +148,54 @@ struct NotificationScreen: View {
 
    // MARK: - History List
 
-   @ViewBuilder
-   private var historyList: some View {
+    @ViewBuilder
+    private var historyList: some View {
 
-       if !viewModel.historyItems.isEmpty {
+        if !viewModel.historyItems.isEmpty {
 
-           LazyVStack(alignment: .leading, spacing: 18) {
+            LazyVStack(alignment: .leading, spacing: 28) {
 
-               ForEach(Array(viewModel.historyItems.enumerated()), id: \.element.id) { index, reminder in
+                ForEach(groupedHistory) { section in
 
-                   HistoryReminderRow(reminder: reminder)
-                       .onAppear {
+                    VStack(alignment: .leading, spacing: 0) {
 
-                           let isLast = isLastHistoryItem(index: index)
-//                           print("👁️ history row appeared — id: \(reminder.id), index: \(index)/\(viewModel.historyItems.count - 1), isLastItem: \(isLast)")
+                        Text(section.headerLabel)
+                            .font(.custom("Inter18pt-SemiBold", size: 14))
+                            .foregroundColor(.white)
+                            .padding(.bottom, 14)
 
-                           if isLast {
-                               viewModel.fetchMedicationOverview(type: "history", loadMore: true)
-                           }
-                       }
+                        ForEach(Array(section.items.enumerated()), id: \.element.id) { index, reminder in
 
-                   Divider()
-                       .background(Color.white.opacity(0.15))
-                       .padding(.vertical, 14)
-               }
+                            HistoryReminderRow(reminder: reminder)
+                                .onAppear {
 
-               if viewModel.isLoadingMoreHistory {
-                   bottomLoader
-               }
-           }
+                                    let isLast = isLastHistoryItem(section: section, index: index)
 
-       } else if !viewModel.isLoading {
+                                    if isLast {
+                                        viewModel.fetchMedicationOverview(type: "history", loadMore: true)
+                                    }
+                                }
 
-           emptyState
-       }
-   }
+                            if index < section.items.count - 1 {
+
+                                Divider()
+                                    .background(Color.white.opacity(0.15))
+                                    .padding(.vertical, 14)
+                            }
+                        }
+                    }
+                }
+
+                if viewModel.isLoadingMoreHistory {
+                    bottomLoader
+                }
+            }
+
+        } else if !viewModel.isLoading {
+
+            emptyState
+        }
+    }
 
    // MARK: - Bottom loader
 
@@ -187,6 +209,48 @@ struct NotificationScreen: View {
        .padding(.vertical, 16)
    }
 
+    
+    
+    private var groupedHistory: [HistorySection] {
+
+        // Preserves API order and groups items sharing the same scheduledDate
+        // under one header — same visual result as upcoming's pre-grouped `dates`.
+        var order: [String] = []
+        var buckets: [String: [MedicationHistory]] = [:]
+
+        for item in viewModel.historyItems {
+
+            let key = item.scheduledDate
+
+            if buckets[key] == nil {
+                buckets[key] = []
+                order.append(key)
+            }
+            buckets[key]?.append(item)
+        }
+
+        return order.map { key in
+
+            let items = buckets[key] ?? []
+
+            // Prefer the day/date fields the API already sends per-item
+            // (matches upcoming's "day" + "date"); fall back to the raw
+            // scheduledDate string if they're missing.
+            let day = items.first?.day
+            let date = items.first?.date ?? key
+
+            let headerLabel: String = {
+                if let day, !day.isEmpty {
+                    return "\(day), \(date)"
+                }
+                return date
+            }()
+
+            return HistorySection(id: key, headerLabel: headerLabel, items: items)
+        }
+    }
+    
+    
    // MARK: - Pagination triggers
 
    private func isLastUpcomingItem(section: UpcomingMedicationDate, index: Int) -> Bool {
@@ -195,9 +259,11 @@ struct NotificationScreen: View {
        return section.date == lastSection.date && index == section.logs.count - 1
    }
 
-   private func isLastHistoryItem(index: Int) -> Bool {
-       return index == viewModel.historyItems.count - 1
-   }
+    private func isLastHistoryItem(section: HistorySection, index: Int) -> Bool {
+
+        guard let lastSection = groupedHistory.last else { return false }
+        return section.id == lastSection.id && index == section.items.count - 1
+    }
 
    // MARK: - Segmented control
 
@@ -235,6 +301,8 @@ struct NotificationScreen: View {
 
                            viewModel.resetHistory()
                            viewModel.fetchMedicationOverview(type: "history")
+                           //print("The day is: ", viewModel.historyItems[0].date)
+                          // print("The Date is: ", viewModel.historyItems[0].day)
                        }
                    }
            }
@@ -265,11 +333,6 @@ struct NotificationScreen: View {
    }
 
    private func loadData() {
-      // print("Reload Data✋🏼✋🏼")
-       //if viewModel.upcomingItems.isEmpty {
-           //viewModel.fetchMedicationOverview(type: "upcoming")
-       //}
-       
        // Always reset to the Upcoming tab on appear
            selectedTab = .upcoming
 
@@ -343,11 +406,11 @@ struct HistoryReminderRow: View {
 
            VStack(alignment: .leading, spacing: 4) {
 
-               Text(reminder.medication.name)
+               Text(reminder.medication?.name ?? "Unknown medication")
                    .font(.custom("Inter18pt-SemiBold", size: 12))
                    .foregroundColor(.white)
 
-               Text(reminder.medication.dose)
+               Text(reminder.medication?.dose ?? "-")
                    .font(.custom("Inter18pt-Regular", size: 10))
                    .foregroundColor(.white.opacity(0.5))
            }
@@ -366,6 +429,14 @@ struct HistoryReminderRow: View {
        }
    }
 }
+
+
+
+
+
+
+
+
 
 #Preview {
    NavigationStack {

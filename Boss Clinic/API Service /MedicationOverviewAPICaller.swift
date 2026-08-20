@@ -90,9 +90,9 @@ class MedicationOverviewAPICaller {
 
             print("📌 STATUS CODE: \(httpResponse.statusCode)")
 
-//            if let json = String(data: data, encoding: .utf8) {
-//                print("📌 RESPONSE: \(json)")
-//            }
+            if let json = String(data: data, encoding: .utf8) {
+                //print("📌 RESPONSE: \(json)")
+            }
 
             switch httpResponse.statusCode {
 
@@ -109,6 +109,8 @@ class MedicationOverviewAPICaller {
                             from: data
                         )
 
+                        //print("The History date ", response.data.history[0].day)
+                        
                         DispatchQueue.main.async {
                             completion(.success(response))
                         }

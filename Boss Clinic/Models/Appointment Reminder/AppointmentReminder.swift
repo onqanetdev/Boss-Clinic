@@ -25,5 +25,6 @@ struct AppointmentReminder: Identifiable, Equatable {
     /// arrive empty depending on the notification type (booked vs.
     /// reminder), but the body text is always fully composed server-side.
     let bodyMessage: String
+    let status: String 
 }
 
