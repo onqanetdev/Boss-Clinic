@@ -96,26 +96,19 @@ struct AppointmentListScreen: View {
 
                 ForEach(groupedAppointments) { section in
 
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 12) {
 
                         Text(section.headerLabel)
                             .font(.custom("Inter18pt-SemiBold", size: 14))
                             .foregroundColor(.white)
-                            .padding(.bottom, 14)
+                            .padding(.bottom, 4)
 
-                        ForEach(Array(section.items.enumerated()), id: \.element.id) { index, appointment in
+                        ForEach(section.items) { appointment in
 
                             AppointmentRow(appointment: appointment)
                                 .onAppear {
                                     viewModel.fetchNextPageIfNeeded(currentItem: appointment)
                                 }
-
-                            if index < section.items.count - 1 {
-
-                                Divider()
-                                    .background(Color.white.opacity(0.15))
-                                    .padding(.vertical, 14)
-                            }
                         }
                     }
                 }
@@ -244,40 +237,70 @@ struct AppointmentRow: View {
 
     var body: some View {
 
-        HStack(alignment: .top, spacing: 13) {
+        VStack(alignment: .leading, spacing: 14) {
 
-            Text(displayTime)
-                .font(.custom("Inter18pt-SemiBold", size: 10))
-                .foregroundColor(.white)
-                .frame(width: 60, alignment: .leading)
+            // MARK: Time + Status — top row
+            HStack(alignment: .top) {
 
-            Rectangle()
-                .fill(Color.white.opacity(0.25))
-                .frame(width: 1)
-
-            VStack(alignment: .leading, spacing: 4) {
-
-                Text(appointment.reason)
-                    .font(.custom("Inter18pt-SemiBold", size: 12))
+                Text(displayTime)
+                    .font(.custom("Inter18pt-SemiBold", size: 15))
                     .foregroundColor(.white)
 
-                Text(appointment.username)
-                    .font(.custom("Inter18pt-Regular", size: 10))
-                    .foregroundColor(.white.opacity(0.5))
+                Spacer()
+
+                Text(statusLabel)
+                    .font(.custom("Inter18pt-Regular", size: 11))
+                    .foregroundColor(statusColor)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(statusColor.opacity(0.5))
+                    )
             }
 
-            Spacer()
+            // MARK: Reason — labeled so it reads as "why", not a title
+            VStack(alignment: .leading, spacing: 4) {
 
-            Text(statusLabel)
-                .font(.custom("Inter18pt-Regular", size: 10))
-                .foregroundColor(statusColor)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(statusColor.opacity(0.5))
-                )
+                Text("Reason for appointment")
+                    .font(.custom("Inter18pt-Regular", size: 11))
+                    .foregroundColor(.white.opacity(0.4))
+                    .textCase(.uppercase)
+
+                Text(appointment.reason)
+                    .font(.custom("Inter18pt-Regular", size: 14))
+                    .foregroundColor(.white.opacity(0.85))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+//            Divider()
+//                .background(Color.white.opacity(0.1))
+
+            // MARK: Patient — labeled with an icon, not a bare name
+//            HStack(spacing: 8) {
+//
+//                Image(systemName: "person.fill")
+//                    .font(.system(size: 11))
+//                    .foregroundColor(.white.opacity(0.4))
+//
+//                Text("Patient")
+//                    .font(.custom("Inter18pt-Regular", size: 12))
+//                    .foregroundColor(.white.opacity(0.4))
+//
+//                Text(appointment.username)
+//                    .font(.custom("Inter18pt-SemiBold", size: 12))
+//                    .foregroundColor(.white.opacity(0.75))
+//            }
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.04))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+        )
     }
 
     // Strips seconds off "17:25:00" → "17:25" for display.
