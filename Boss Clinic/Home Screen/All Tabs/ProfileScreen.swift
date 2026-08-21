@@ -253,32 +253,33 @@ private struct ProfileRow: View {
        self.action = action
    }
 
-  var body: some View {
-      Button(action: action) {
-          HStack(spacing: 16) {
-              iconView
-                  .frame(width: 20, height: 20)
-                  .foregroundColor(iconColor)
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                iconView
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(iconColor)
 
-              Text(title)
-                  .font(.custom("Inter24pt-Regular", size: 16))
-                  .foregroundColor(titleColor)
+                Text(title)
+                    .font(.custom("Inter24pt-Regular", size: 16))
+                    .foregroundColor(titleColor)
 
-              Spacer()
+                Spacer()
 
-              Image(systemName: "chevron.right")
-                  .font(.system(size: 15, weight: .semibold))
-                  .foregroundColor(.white)
-          }
-          .padding(.vertical, 18)
-          .padding(.horizontal, 16)
-          .background(
-              RoundedRectangle(cornerRadius: 14)
-                  .stroke(Color.white.opacity(0.25), lineWidth: 1)
-          )
-      }
-      .buttonStyle(.plain)
-  }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .contentShape(Rectangle())   // ← makes the entire row hit-testable
+            .padding(.vertical, 18)
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.white.opacity(0.25), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
 
   @ViewBuilder
   private var iconView: some View {

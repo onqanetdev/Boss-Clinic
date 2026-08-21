@@ -11,7 +11,6 @@ struct MyProfileScreen: View {
 
     @State var name = ""
     @State var gender = ""
-    // @State private var dateOfBirth = ""
     @State var bloodGroup = ""
     @State var height = ""
     @State var weight = ""
@@ -27,10 +26,9 @@ struct MyProfileScreen: View {
 
     @State var selectedAddress = ""
     @State private var showOfflineAlert = false
-    
+
     var body: some View {
 
-        
         ZStack {
             
             ScrollView(showsIndicators: false) {
@@ -47,8 +45,6 @@ struct MyProfileScreen: View {
                         prefixImage: "user"
                     )
 
-
-                    
                     Text("Email")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
@@ -59,10 +55,6 @@ struct MyProfileScreen: View {
                         prefixImage: "mailbox"
                     )
 
-                   //MARK: Gender Selection
-                    
-                    
-                    
                     Text("Gender")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
@@ -73,8 +65,6 @@ struct MyProfileScreen: View {
                         options: ["Male", "Female", "Other"]
                     )
 
-                    
-                
                     Text("Address")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(.white)
@@ -84,7 +74,6 @@ struct MyProfileScreen: View {
                         placeholder: "Select clinic",
                         options: ["Subiaco-Clinic-WA", "Bondi-Clinic-NSW"]
                     )
-                    
                     
                     Text("Phone")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
@@ -96,18 +85,17 @@ struct MyProfileScreen: View {
                         prefixImage: "telephone",
                         keyboardType: .phonePad
                     )
-
+                    .disabled(true)
+                    .opacity(0.5)
 
                     PrimaryButton(title: "Save") {
-                        //print("Hello")
-                        
+
                         editProfileVM.updateProfile(
-                                name: name,
-                                gender: gender.lowercased(),
-                                phoneReceived: emergencyContact,
-                                address: selectedAddress.lowercased()
-                            )
-                        
+                            name: name,
+                            gender: gender.lowercased(),
+                            phoneReceived: emergencyContact,
+                            address: selectedAddress.lowercased()
+                        )
                     }
                     .padding(.top, 20)
                 }
@@ -115,17 +103,16 @@ struct MyProfileScreen: View {
                 .padding(.vertical)
             }
             
-            // Loader
-                  if editProfileVM.isLoading {
+            if editProfileVM.isLoading {
 
-                      Color.black.opacity(0.4)
-                          .ignoresSafeArea()
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
 
-                      ProgressView()
-                          .progressViewStyle(.circular)
-                          .tint(.white)
-                          .scaleEffect(1.5)
-                  }
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .tint(.white)
+                    .scaleEffect(1.5)
+            }
             
         }
         .background(Color.black.ignoresSafeArea())
@@ -136,11 +123,7 @@ struct MyProfileScreen: View {
         }
         .onChange(of: editProfileVM.isProfileUpdated) { success in
             if success {
-                
                 showSuccessAlert = true
-                
-                //print("✅ Profile Updated Successfully")
-                // Optionally pop back or show a success toast/alert
             }
         }
         .onChange(of: editProfileVM.isOffline) { offline in
@@ -164,34 +147,24 @@ struct MyProfileScreen: View {
         } message: {
             Text(editProfileVM.errorMessage ?? "")
         }
-        
         .alert("Success", isPresented: $showSuccessAlert) {
             Button("OK") { }
         } message: {
             Text("Profile updated successfully.")
         }
     }
-    
-    
+
     private var displayDate: String {
-
-//            guard let date = dateOfBirth else {
-//                return ""
-//            }
-
-            let formatter = DateFormatter()
-            formatter.dateFormat = "dd MMM yyyy"
-
-            return formatter.string(from: dateOfBirth)
-        }
-    
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd MMM yyyy"
+        return formatter.string(from: dateOfBirth)
+    }
     
     private var formattedDate: String {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            return formatter.string(from: dateOfBirth)
-        }
-    
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: dateOfBirth)
+    }
 }
 
 #Preview {
@@ -199,4 +172,3 @@ struct MyProfileScreen: View {
         MyProfileScreen()
     }
 }
-
