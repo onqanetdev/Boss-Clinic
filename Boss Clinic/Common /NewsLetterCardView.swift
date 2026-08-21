@@ -16,21 +16,10 @@ struct NewsLetterCardView: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                AsyncImage(url: URL(string: newsletter.image ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    case .empty:
-                        ProgressView()
-                    default:
-                        Image(systemName: "photo")
-                            .foregroundColor(.gray)
-                    }
-                }
-                .frame(width: 48, height: 48)
-                .clipShape(Circle())
+
+                thumbnail
+                    .frame(width: 48, height: 48)
+                    .clipShape(Circle())
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(newsletter.subject ?? "Newsletter")
@@ -56,5 +45,47 @@ struct NewsLetterCardView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Thumbnail
+
+    @ViewBuilder
+    private var thumbnail: some View {
+
+        if let imageURLString = newsletter.image,
+           !imageURLString.isEmpty,
+           let url = URL(string: imageURLString) {
+
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure:
+                    placeholderIcon
+                case .empty:
+                    ProgressView()
+                @unknown default:
+                    placeholderIcon
+                }
+            }
+
+        } else {
+
+            // No image URL at all — skip AsyncImage entirely so we
+            // never sit in an indefinite .empty/spinner state.
+            placeholderIcon
+        }
+    }
+
+    private var placeholderIcon: some View {
+        ZStack {
+            Circle()
+                .fill(Color.white.opacity(0.08))
+
+            Image(systemName: "photo")
+                .foregroundColor(.gray)
+        }
     }
 }

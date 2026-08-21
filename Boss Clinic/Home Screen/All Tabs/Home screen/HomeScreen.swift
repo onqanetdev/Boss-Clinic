@@ -57,6 +57,9 @@ struct HomeScreen: View {
             .navigationBarBackButtonHidden(true)
             .onAppear(perform: loadInitialData)
             .modifier(dashboardObservers)
+            .onReceive(NotificationCenter.default.publisher(for: .medicationMarkedAsTaken)) { _ in
+                        dashboardVM.fetchDashboard(pageNo: 0, pageElements: 10)
+                    }
     }
 
     // MARK: - Layout split into small pieces

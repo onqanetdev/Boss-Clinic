@@ -45,6 +45,7 @@ struct RootView: View {
                 onTakeNow: {
                     // TODO: mark this dose as taken — e.g. decrement
                     // quantityRemaining in Firestore for this medication
+                    NotificationCenter.default.post(name: .medicationMarkedAsTaken, object: nil)
  
                 },
                 onSnooze: {

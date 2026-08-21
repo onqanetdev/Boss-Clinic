@@ -17,24 +17,30 @@ struct NewsletterDetailScreen: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 16) {
 
-                AsyncImage(url: URL(string: newsletter.image ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    case .empty:
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    default:
-                        Image(systemName: "photo")
-                            .foregroundColor(.gray)
+                if let imageURLString = newsletter.image,
+                   !imageURLString.isEmpty,
+                   let url = URL(string: imageURLString) {
+
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        case .failure:
+                            EmptyView()
+                        case .empty:
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                        @unknown default:
+                            EmptyView()
+                        }
                     }
+                    .frame(height: 220)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
-                .frame(height: 220)
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(newsletter.subject ?? "Newsletter")
@@ -97,4 +103,3 @@ struct NewsletterDetailScreen: View {
         )
     )
 }
-
