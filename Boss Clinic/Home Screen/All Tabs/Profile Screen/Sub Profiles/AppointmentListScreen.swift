@@ -7,11 +7,14 @@
 
 import SwiftUI
 
+
 struct AppointmentListScreen: View {
 
     @StateObject private var viewModel = AppointmentListViewModel()
+    @StateObject private var statusViewModel = AppointmentStatusViewModel()
 
     @State private var showOfflineAlert = false
+    @State private var showActionErrorAlert = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -75,15 +78,32 @@ struct AppointmentListScreen: View {
                 showOfflineAlert = true
             }
         }
+        .onChange(of: statusViewModel.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: statusViewModel.errorMessage) { message in
+            if message != nil {
+                showActionErrorAlert = true
+            }
+        }
         .alert("No Internet Connection", isPresented: $showOfflineAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Please check your internet connection and try again.")
         }
+        .alert("Something Went Wrong", isPresented: $showActionErrorAlert) {
+            Button("OK", role: .cancel) {
+                statusViewModel.errorMessage = nil
+            }
+        } message: {
+            Text(statusViewModel.errorMessage ?? "Please try again.")
+        }
         .navigationBarBackButtonHidden(true)
     }
-        
-    
+
+
 
     // MARK: - Appointment List (grouped by date)
 
@@ -105,10 +125,25 @@ struct AppointmentListScreen: View {
 
                         ForEach(section.items) { appointment in
 
-                            AppointmentRow(appointment: appointment)
-                                .onAppear {
-                                    viewModel.fetchNextPageIfNeeded(currentItem: appointment)
+                            AppointmentRow(
+                                appointment: appointment,
+                                isUpdating: statusViewModel.isUpdating,
+                                onConfirm: {
+                                    confirmAppointment(appointment)
+                                },
+                                onCancel: {
+                                    cancelAppointment(appointment)
+                                },
+                                onReschedule: { notes in
+                                    rescheduleAppointment(appointment, notes: notes)
+                                },
+                                onRequestCall: {
+                                    requestCall(for: appointment)
                                 }
+                            )
+                            .onAppear {
+                                viewModel.fetchNextPageIfNeeded(currentItem: appointment)
+                            }
                         }
                     }
                 }
@@ -122,6 +157,53 @@ struct AppointmentListScreen: View {
 
             emptyState
         }
+    }
+
+    // MARK: - Row actions
+    //
+    // NOTE: `applyLocalStatusUpdate` assumes `viewModel.appointments` is a
+    // `@Published var [Appointment]` with a mutable `status` on `Appointment`.
+    // If AppointmentListViewModel already exposes a dedicated update method
+    // (e.g. `viewModel.updateLocalAppointment(...)`), call that instead of
+    // this direct array mutation to avoid duplicating logic.
+
+    private func confirmAppointment(_ appointment: Appointment) {
+        statusViewModel.updateStatus(appointmentId: appointment.id, type: .confirm) { updated in
+            applyLocalStatusUpdate(updated)
+        }
+    }
+
+    private func cancelAppointment(_ appointment: Appointment) {
+        statusViewModel.updateStatus(appointmentId: appointment.id, type: .cancel) { updated in
+            applyLocalStatusUpdate(updated)
+        }
+    }
+
+    private func rescheduleAppointment(_ appointment: Appointment, notes: String) {
+        statusViewModel.updateStatus(appointmentId: appointment.id, type: .reschedule, notes: notes) { updated in
+            applyLocalStatusUpdate(updated)
+        }
+    }
+
+    private func requestCall(for appointment: Appointment) {
+        statusViewModel.updateStatus(appointmentId: appointment.id, type: .call) { updated in
+            applyLocalStatusUpdate(updated)
+        }
+    }
+
+    /// Updates the matching row in the list in place, so the UI reflects
+    /// the new status immediately without a full refetch.
+    private func applyLocalStatusUpdate(_ updated: AppointmentStatusDetail) {
+        guard let index = viewModel.appointments.firstIndex(where: { $0.id == updated.id }) else {
+            return
+        }
+        // NOTE: if `appointments` isn't declared `@Published` on
+        // AppointmentListViewModel, mutating an element in place won't
+        // trigger a re-render on its own — this explicit notification
+        // is a safety net either way. If `appointments` is already
+        // `@Published`, this call is harmless but redundant.
+        viewModel.objectWillChange.send()
+        viewModel.appointments[index].status = updated.status
     }
 
     // MARK: - Grouping helper
@@ -234,6 +316,28 @@ struct AppointmentListScreen: View {
 struct AppointmentRow: View {
 
     let appointment: Appointment
+    var isUpdating: Bool = false
+
+    var onConfirm: () -> Void = {}
+    var onCancel: () -> Void = {}
+    var onReschedule: (String) -> Void = { _ in }
+    var onRequestCall: () -> Void = {}
+
+    private enum RowAction {
+        case confirm
+        case cancel
+        case reschedule
+    }
+
+    @State private var selectedAction: RowAction? = nil
+    @State private var notesText: String = ""
+    @FocusState private var notesFieldFocused: Bool
+
+    // Confirmation alert state — Confirm and Cancel both require a
+    // second tap before their callback actually fires.
+    @State private var pendingConfirmationAction: RowAction? = nil
+    @State private var showActionAlert = false
+    @State private var callRequested = false
 
     var body: some View {
 
@@ -273,24 +377,56 @@ struct AppointmentRow: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-//            Divider()
-//                .background(Color.white.opacity(0.1))
+            // MARK: Row actions — Cancel / Confirm / Reschedule
+            if showsActionRow {
 
-            // MARK: Patient — labeled with an icon, not a bare name
-//            HStack(spacing: 8) {
-//
-//                Image(systemName: "person.fill")
-//                    .font(.system(size: 11))
-//                    .foregroundColor(.white.opacity(0.4))
-//
-//                Text("Patient")
-//                    .font(.custom("Inter18pt-Regular", size: 12))
-//                    .foregroundColor(.white.opacity(0.4))
-//
-//                Text(appointment.username)
-//                    .font(.custom("Inter18pt-SemiBold", size: 12))
-//                    .foregroundColor(.white.opacity(0.75))
-//            }
+                HStack(spacing: 10) {
+
+                    actionButton(
+                        title: "Cancel",
+                        color: .red,
+                        isSelected: selectedAction == .cancel
+                    ) {
+                        print("Appointment ID: \(appointment.id)")
+                        selectedAction = .cancel
+                        notesFieldFocused = false
+                        pendingConfirmationAction = .cancel
+                        showActionAlert = true
+                    }
+
+                    actionButton(
+                        title: "Confirm",
+                        color: .green,
+                        isSelected: selectedAction == .confirm
+                    ) {
+                        print("Appointment ID: \(appointment.id)")
+                        selectedAction = .confirm
+                        notesFieldFocused = false
+                        pendingConfirmationAction = .confirm
+                        showActionAlert = true
+                    }
+
+                    actionButton(
+                        title: "Reschedule",
+                        color: .orange,
+                        isSelected: selectedAction == .reschedule
+                    ) {
+                        print("Appointment ID: \(appointment.id)")
+                        selectedAction = .reschedule
+                    }
+                }
+                .disabled(isUpdating)
+
+                if selectedAction == .reschedule {
+                    notesSection
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .move(edge: .top)),
+                            removal: .opacity
+                        ))
+                }
+            }
+
+            requestCallButton
         }
         .padding(16)
         .background(
@@ -301,6 +437,177 @@ struct AppointmentRow: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.white.opacity(0.12), lineWidth: 1)
         )
+        .animation(.easeInOut(duration: 0.2), value: selectedAction)
+        .alert(alertTitle, isPresented: $showActionAlert) {
+            Button("Yes", role: pendingConfirmationAction == .cancel ? .destructive : nil) {
+                handleAlertConfirmed()
+            }
+            Button("No", role: .cancel) {
+                handleAlertDismissed()
+            }
+        }
+    }
+
+    // MARK: - Confirmation alert
+
+    private var alertTitle: String {
+        switch pendingConfirmationAction {
+        case .confirm:
+            return "Are you sure want to confirm this?"
+        case .cancel:
+            return "Are you want to cancel this appointment?"
+        case .reschedule, .none:
+            return ""
+        }
+    }
+
+    private func handleAlertConfirmed() {
+        print("Appointment ID: \(appointment.id)")
+        switch pendingConfirmationAction {
+        case .confirm:
+            onConfirm()
+        case .cancel:
+            onCancel()
+        case .reschedule, .none:
+            break
+        }
+        pendingConfirmationAction = nil
+    }
+
+    // User tapped "No" — back out of the selected state entirely.
+    private func handleAlertDismissed() {
+        selectedAction = nil
+        pendingConfirmationAction = nil
+    }
+
+    // MARK: - Request a call button
+
+    private var requestCallButton: some View {
+        Button {
+            print("Appointment ID: \(appointment.id)")
+            callRequested = true
+            onRequestCall()
+        } label: {
+            HStack(spacing: 8) {
+
+                Image(systemName: callRequested ? "checkmark.circle.fill" : "phone.fill")
+                    .font(.system(size: 12))
+
+                Text(callRequested ? "We'll call you shortly" : "I want a call from clinic")
+                    .font(.custom("Inter18pt-SemiBold", size: 12))
+            }
+            .foregroundColor(callRequested ? .green : .white.opacity(0.85))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.white.opacity(0.04))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(callRequested)
+    }
+
+    // MARK: - Notes section
+
+    private var trimmedNotes: String {
+        notesText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+
+            Text("Notes")
+                .font(.custom("Inter18pt-Regular", size: 11))
+                .foregroundColor(.white.opacity(0.4))
+                .textCase(.uppercase)
+
+            ZStack(alignment: .topLeading) {
+
+                if notesText.isEmpty {
+                    Text("Add a reason for this reschedule…")
+                        .font(.custom("Inter18pt-Regular", size: 13))
+                        .foregroundColor(.white.opacity(0.3))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                }
+
+                TextEditor(text: $notesText)
+                    .focused($notesFieldFocused)
+                    .font(.custom("Inter18pt-Regular", size: 13))
+                    .foregroundColor(.white.opacity(0.9))
+                    .scrollContentBackground(.hidden)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .frame(height: 70)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.white.opacity(0.03))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+            )
+
+            HStack {
+                Spacer()
+
+                Button {
+                    guard !trimmedNotes.isEmpty else { return }
+                    print("Appointment ID: \(appointment.id)")
+                    notesFieldFocused = false
+                    onReschedule(trimmedNotes)
+                    selectedAction = nil
+                    notesText = ""
+                } label: {
+                    Text("Save")
+                        .font(.custom("Inter18pt-SemiBold", size: 12))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(trimmedNotes.isEmpty ? Color.orange.opacity(0.4) : Color.orange)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .disabled(trimmedNotes.isEmpty)
+            }
+        }
+    }
+
+    // MARK: - Action button
+
+    private func actionButton(
+        title: String,
+        color: Color,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+
+        Button(action: action) {
+            Text(title)
+                .font(.custom("Inter18pt-SemiBold", size: 12))
+                .foregroundColor(isSelected ? .black : color)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isSelected ? color : Color.white.opacity(0.04))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(color.opacity(0.6), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // Actions stay available for anything that isn't a final state.
+    private var showsActionRow: Bool {
+        appointment.status != .completed && appointment.status != .cancelled
     }
 
     // Strips seconds off "17:25:00" → "17:25" for display.
@@ -322,6 +629,12 @@ struct AppointmentRow: View {
             return .green
         case .cancelled:
             return .red
+        case .called:
+            return .blue
+        case .confirmed:
+            return .green
+        case .unknown:
+            return .white.opacity(0.4)
         }
     }
 }
@@ -371,6 +684,8 @@ struct AppointmentListSkeleton: View {
             .frame(width: width, height: height)
     }
 }
+
+
 
 #Preview {
     NavigationStack {
