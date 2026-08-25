@@ -22,8 +22,8 @@ enum AppointmentStatus: String, Codable {
     case rescheduled
     case completed
     case cancelled
-    case called   // ← add this
-    case confirmed   // ← new
+    case called
+    case confirmed
     case unknown
 }
 
@@ -31,21 +31,15 @@ enum AppointmentStatus: String, Codable {
 
 struct Appointment: Codable, Identifiable, Equatable {
 
-    // No "id" field is present in the JSON, so this is synthesized from
-    // stable fields to give SwiftUI something unique per row. If the
-    // backend later adds a real "id", swap this out for a decoded field.
-    
-    var id: String
-    
-//    {
-//        "\(userID)_\(appointmentDate)_\(appointmentTime)"
-//    }
-
+    // The API does include a real "id" field, so this is decoded
+    // directly rather than synthesized.
+    let id: String
     let userID: String
     let username: String
-    let appointmentDate: String
-    let appointmentTime: String
+    let appointmentDate: String   // "yyyy-MM-dd"
+    let appointmentTime: String   // "HH:mm:ss"
     let reason: String
+    var notes: String?
     var status: AppointmentStatus
 
     enum CodingKeys: String, CodingKey {
@@ -55,6 +49,7 @@ struct Appointment: Codable, Identifiable, Equatable {
         case appointmentDate = "appointment_date"
         case appointmentTime = "appointment_time"
         case reason
+        case notes
         case status
     }
 }

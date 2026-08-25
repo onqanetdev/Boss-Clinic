@@ -204,6 +204,7 @@ struct AppointmentListScreen: View {
         // `@Published`, this call is harmless but redundant.
         viewModel.objectWillChange.send()
         viewModel.appointments[index].status = updated.status
+        viewModel.appointments[index].notes = updated.notes
     }
 
     // MARK: - Grouping helper
@@ -242,13 +243,13 @@ struct AppointmentListScreen: View {
         }
     }
 
-    /// Parses the API's "dd-MM-yyyy" date string into a friendly
+    /// Parses the API's "yyyy-MM-dd" date string into a friendly
     /// "Weekday, d MMMM yyyy" header, matching the style of the
     /// Reminders screen's day/date section headers.
     private func formattedHeader(for rawDate: String) -> String {
 
         let inputFormatter = DateFormatter()
-        inputFormatter.dateFormat = "dd-MM-yyyy"
+        inputFormatter.dateFormat = "yyyy-MM-dd"
 
         guard let date = inputFormatter.date(from: rawDate) else {
             return rawDate  // fallback: show the raw string if parsing fails
@@ -375,6 +376,22 @@ struct AppointmentRow: View {
                     .font(.custom("Inter18pt-Regular", size: 14))
                     .foregroundColor(.white.opacity(0.85))
                     .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // MARK: Existing notes — only shown when the API actually has one
+            if let existingNotes {
+                VStack(alignment: .leading, spacing: 4) {
+
+                    Text("Notes")
+                        .font(.custom("Inter18pt-Regular", size: 11))
+                        .foregroundColor(.white.opacity(0.4))
+                        .textCase(.uppercase)
+
+                    Text(existingNotes)
+                        .font(.custom("Inter18pt-Regular", size: 14))
+                        .foregroundColor(.white.opacity(0.85))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             // MARK: Row actions — Cancel / Confirm / Reschedule
@@ -605,6 +622,13 @@ struct AppointmentRow: View {
         .buttonStyle(.plain)
     }
 
+    // Only show the existing-notes block when the API actually sent one.
+    private var existingNotes: String? {
+        guard let notes = appointment.notes else { return nil }
+        let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
     // Actions stay available for anything that isn't a final state.
     private var showsActionRow: Bool {
         appointment.status != .completed && appointment.status != .cancelled
@@ -684,8 +708,6 @@ struct AppointmentListSkeleton: View {
             .frame(width: width, height: height)
     }
 }
-
-
 
 #Preview {
     NavigationStack {
