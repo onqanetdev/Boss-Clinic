@@ -9,7 +9,6 @@ import Foundation
 
 
 
-
 enum AppointmentActionType: String {
     case cancel
     case confirm
@@ -25,6 +24,8 @@ class AppointmentStatusAPICaller {
         appointmentId: String,
         type: AppointmentActionType,
         notes: String? = nil,
+        newAppointmentDate: String? = nil,
+        newAppointmentTime: String? = nil,
         completion: @escaping (Result<AppointmentStatusUpdateResponse, NetworkError>) -> Void
     ) {
 
@@ -64,6 +65,17 @@ class AppointmentStatusAPICaller {
 
         if let notes, !notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             body["notes"] = notes
+        }
+
+        // Confirmed against a working Postman call — optional, only sent
+        // when provided (e.g. reschedule may or may not include a new
+        // date/time depending on what the user picked).
+        if let newAppointmentDate {
+            body["appointment_date"] = newAppointmentDate
+        }
+
+        if let newAppointmentTime {
+            body["appointment_time"] = newAppointmentTime
         }
 
         do {

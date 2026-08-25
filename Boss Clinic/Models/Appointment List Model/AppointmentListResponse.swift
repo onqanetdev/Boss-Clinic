@@ -36,8 +36,8 @@ struct Appointment: Codable, Identifiable, Equatable {
     let id: String
     let userID: String
     let username: String
-    let appointmentDate: String   // "yyyy-MM-dd"
-    let appointmentTime: String   // "HH:mm:ss"
+    var appointmentDate: String   // "yyyy-MM-dd"
+    var appointmentTime: String   // "HH:mm:ss"
     let reason: String
     var notes: String?
     var status: AppointmentStatus

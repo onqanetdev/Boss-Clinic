@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct AppointmentListScreen: View {
 
     @StateObject private var viewModel = AppointmentListViewModel()
@@ -134,8 +133,8 @@ struct AppointmentListScreen: View {
                                 onCancel: {
                                     cancelAppointment(appointment)
                                 },
-                                onReschedule: { notes in
-                                    rescheduleAppointment(appointment, notes: notes)
+                                onReschedule: { notes, date, time in
+                                    rescheduleAppointment(appointment, notes: notes, date: date, time: time)
                                 },
                                 onRequestCall: {
                                     requestCall(for: appointment)
@@ -161,50 +160,46 @@ struct AppointmentListScreen: View {
 
     // MARK: - Row actions
     //
-    // NOTE: `applyLocalStatusUpdate` assumes `viewModel.appointments` is a
-    // `@Published var [Appointment]` with a mutable `status` on `Appointment`.
-    // If AppointmentListViewModel already exposes a dedicated update method
-    // (e.g. `viewModel.updateLocalAppointment(...)`), call that instead of
-    // this direct array mutation to avoid duplicating logic.
+    // NOTE: Each action now triggers a full list refetch on success rather
+    // than patching `viewModel.appointments` in place — this re-shows the
+    // full-page skeleton (AppointmentListSkeleton) via `viewModel.isLoading`
+    // the same way the initial `onAppear` load does.
 
     private func confirmAppointment(_ appointment: Appointment) {
-        statusViewModel.updateStatus(appointmentId: appointment.id, type: .confirm) { updated in
-            applyLocalStatusUpdate(updated)
+        statusViewModel.updateStatus(appointmentId: appointment.id, type: .confirm) { _ in
+            loadData()
         }
     }
 
     private func cancelAppointment(_ appointment: Appointment) {
-        statusViewModel.updateStatus(appointmentId: appointment.id, type: .cancel) { updated in
-            applyLocalStatusUpdate(updated)
+        statusViewModel.updateStatus(appointmentId: appointment.id, type: .cancel) { _ in
+            loadData()
         }
     }
 
-    private func rescheduleAppointment(_ appointment: Appointment, notes: String) {
-        statusViewModel.updateStatus(appointmentId: appointment.id, type: .reschedule, notes: notes) { updated in
-            applyLocalStatusUpdate(updated)
+    private func rescheduleAppointment(_ appointment: Appointment, notes: String, date: Date, time: Date) {
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+
+        statusViewModel.updateStatus(
+            appointmentId: appointment.id,
+            type: .reschedule,
+            notes: notes,
+            newAppointmentDate: dateFormatter.string(from: date),
+            newAppointmentTime: timeFormatter.string(from: time)
+        ) { _ in
+            loadData()
         }
     }
 
     private func requestCall(for appointment: Appointment) {
-        statusViewModel.updateStatus(appointmentId: appointment.id, type: .call) { updated in
-            applyLocalStatusUpdate(updated)
+        statusViewModel.updateStatus(appointmentId: appointment.id, type: .call) { _ in
+            loadData()
         }
-    }
-
-    /// Updates the matching row in the list in place, so the UI reflects
-    /// the new status immediately without a full refetch.
-    private func applyLocalStatusUpdate(_ updated: AppointmentStatusDetail) {
-        guard let index = viewModel.appointments.firstIndex(where: { $0.id == updated.id }) else {
-            return
-        }
-        // NOTE: if `appointments` isn't declared `@Published` on
-        // AppointmentListViewModel, mutating an element in place won't
-        // trigger a re-render on its own — this explicit notification
-        // is a safety net either way. If `appointments` is already
-        // `@Published`, this call is harmless but redundant.
-        viewModel.objectWillChange.send()
-        viewModel.appointments[index].status = updated.status
-        viewModel.appointments[index].notes = updated.notes
     }
 
     // MARK: - Grouping helper
@@ -321,7 +316,7 @@ struct AppointmentRow: View {
 
     var onConfirm: () -> Void = {}
     var onCancel: () -> Void = {}
-    var onReschedule: (String) -> Void = { _ in }
+    var onReschedule: (String, Date, Date) -> Void = { _, _, _ in }
     var onRequestCall: () -> Void = {}
 
     private enum RowAction {
@@ -332,6 +327,8 @@ struct AppointmentRow: View {
 
     @State private var selectedAction: RowAction? = nil
     @State private var notesText: String = ""
+    @State private var rescheduleDate: Date = Date()
+    @State private var rescheduleTime: Date = Date()
     @FocusState private var notesFieldFocused: Bool
 
     // Confirmation alert state — Confirm and Cancel both require a
@@ -435,7 +432,7 @@ struct AppointmentRow: View {
                 .disabled(isUpdating)
 
                 if selectedAction == .reschedule {
-                    notesSection
+                    rescheduleSection
                         .transition(.asymmetric(
                             insertion: .opacity.combined(with: .move(edge: .top)),
                             removal: .opacity
@@ -529,47 +526,112 @@ struct AppointmentRow: View {
         .disabled(callRequested)
     }
 
-    // MARK: - Notes section
+    // MARK: - Reschedule section (date, time, notes)
 
     private var trimmedNotes: String {
         notesText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var notesSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+    private var rescheduleSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
 
-            Text("Notes")
-                .font(.custom("Inter18pt-Regular", size: 11))
-                .foregroundColor(.white.opacity(0.4))
-                .textCase(.uppercase)
+            // MARK: New date
+            VStack(alignment: .leading, spacing: 6) {
 
-            ZStack(alignment: .topLeading) {
+                Text("New Date")
+                    .font(.custom("Inter18pt-Regular", size: 11))
+                    .foregroundColor(.white.opacity(0.4))
+                    .textCase(.uppercase)
 
-                if notesText.isEmpty {
-                    Text("Add a reason for this reschedule…")
-                        .font(.custom("Inter18pt-Regular", size: 13))
-                        .foregroundColor(.white.opacity(0.3))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                }
-
-                TextEditor(text: $notesText)
-                    .focused($notesFieldFocused)
-                    .font(.custom("Inter18pt-Regular", size: 13))
-                    .foregroundColor(.white.opacity(0.9))
-                    .scrollContentBackground(.hidden)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .frame(height: 70)
+                DatePicker(
+                    "",
+                    selection: $rescheduleDate,
+                    in: Date()...,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                .colorScheme(.dark)
+                .tint(.orange)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white.opacity(0.03))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                )
             }
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white.opacity(0.03))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.orange.opacity(0.4), lineWidth: 1)
-            )
+
+            // MARK: New time
+            VStack(alignment: .leading, spacing: 6) {
+
+                Text("New Time")
+                    .font(.custom("Inter18pt-Regular", size: 11))
+                    .foregroundColor(.white.opacity(0.4))
+                    .textCase(.uppercase)
+
+                DatePicker(
+                    "",
+                    selection: $rescheduleTime,
+                    displayedComponents: .hourAndMinute
+                )
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                .colorScheme(.dark)
+                .tint(.orange)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white.opacity(0.03))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                )
+            }
+
+            // MARK: Notes
+            VStack(alignment: .leading, spacing: 6) {
+
+                Text("Notes")
+                    .font(.custom("Inter18pt-Regular", size: 11))
+                    .foregroundColor(.white.opacity(0.4))
+                    .textCase(.uppercase)
+
+                ZStack(alignment: .topLeading) {
+
+                    if notesText.isEmpty {
+                        Text("Add a reason for this reschedule…")
+                            .font(.custom("Inter18pt-Regular", size: 13))
+                            .foregroundColor(.white.opacity(0.3))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                    }
+
+                    TextEditor(text: $notesText)
+                        .focused($notesFieldFocused)
+                        .font(.custom("Inter18pt-Regular", size: 13))
+                        .foregroundColor(.white.opacity(0.9))
+                        .scrollContentBackground(.hidden)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .frame(height: 70)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white.opacity(0.03))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                )
+            }
 
             HStack {
                 Spacer()
@@ -578,7 +640,7 @@ struct AppointmentRow: View {
                     guard !trimmedNotes.isEmpty else { return }
                     print("Appointment ID: \(appointment.id)")
                     notesFieldFocused = false
-                    onReschedule(trimmedNotes)
+                    onReschedule(trimmedNotes, rescheduleDate, rescheduleTime)
                     selectedAction = nil
                     notesText = ""
                 } label: {

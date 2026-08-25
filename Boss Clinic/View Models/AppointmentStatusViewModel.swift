@@ -8,7 +8,6 @@
 import Foundation
 
 
-
 final class AppointmentStatusViewModel: ObservableObject {
 
     // MARK: - Published state
@@ -32,12 +31,16 @@ final class AppointmentStatusViewModel: ObservableObject {
     ///   - appointmentId: The appointment's `id`.
     ///   - type: `.cancel`, `.confirm`, `.reschedule`, or `.call`.
     ///   - notes: Optional note — required for `.reschedule`, ignored/omitted for `.call`.
+    ///   - newAppointmentDate: Required for `.reschedule` — "yyyy-MM-dd".
+    ///   - newAppointmentTime: Required for `.reschedule` — "HH:mm:ss".
     ///   - onSuccess: Called with the updated appointment detail on success,
     ///     so the caller can update its local list/state without a full refetch.
     func updateStatus(
         appointmentId: String,
         type: AppointmentActionType,
         notes: String? = nil,
+        newAppointmentDate: String? = nil,
+        newAppointmentTime: String? = nil,
         onSuccess: ((AppointmentStatusDetail) -> Void)? = nil
     ) {
 
@@ -59,7 +62,9 @@ final class AppointmentStatusViewModel: ObservableObject {
         apiCaller.updateAppointmentStatus(
             appointmentId: appointmentId,
             type: type,
-            notes: notes
+            notes: notes,
+            newAppointmentDate: newAppointmentDate,
+            newAppointmentTime: newAppointmentTime
         ) { [weak self] result in
 
             guard let self else { return }
