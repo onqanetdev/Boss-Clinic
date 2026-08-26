@@ -160,24 +160,30 @@ struct AppointmentListScreen: View {
 
     // MARK: - Row actions
     //
-    // NOTE: Each action now triggers a full list refetch on success rather
-    // than patching `viewModel.appointments` in place — this re-shows the
-    // full-page skeleton (AppointmentListSkeleton) via `viewModel.isLoading`
-    // the same way the initial `onAppear` load does.
+    // NOTE: `viewModel.isLoading = true` fires immediately on tap so the
+    // skeleton appears right away, rather than only after the action's own
+    // network call (confirm/cancel/reschedule/call) finishes. `loadData()`
+    // still runs afterward to fetch the real refreshed list. This assumes
+    // `isLoading` is a settable `@Published var` on AppointmentListViewModel
+    // — if it's `private(set)`, this needs a small setter method there instead.
 
     private func confirmAppointment(_ appointment: Appointment) {
+        viewModel.isLoading = true
         statusViewModel.updateStatus(appointmentId: appointment.id, type: .confirm) { _ in
             loadData()
         }
     }
 
     private func cancelAppointment(_ appointment: Appointment) {
+        viewModel.isLoading = true
         statusViewModel.updateStatus(appointmentId: appointment.id, type: .cancel) { _ in
             loadData()
         }
     }
 
     private func rescheduleAppointment(_ appointment: Appointment, notes: String, date: Date, time: Date) {
+
+        viewModel.isLoading = true
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
@@ -197,6 +203,7 @@ struct AppointmentListScreen: View {
     }
 
     private func requestCall(for appointment: Appointment) {
+        viewModel.isLoading = true
         statusViewModel.updateStatus(appointmentId: appointment.id, type: .call) { _ in
             loadData()
         }
@@ -329,6 +336,8 @@ struct AppointmentRow: View {
     @State private var notesText: String = ""
     @State private var rescheduleDate: Date = Date()
     @State private var rescheduleTime: Date = Date()
+    @State private var showRescheduleModal = false
+    @State private var showDatePopover = false
     @FocusState private var notesFieldFocused: Bool
 
     // Confirmation alert state — Confirm and Cancel both require a
@@ -423,21 +432,14 @@ struct AppointmentRow: View {
                     actionButton(
                         title: "Reschedule",
                         color: .orange,
-                        isSelected: selectedAction == .reschedule
+                        isSelected: showRescheduleModal
                     ) {
                         print("Appointment ID: \(appointment.id)")
-                        selectedAction = .reschedule
+                        notesFieldFocused = false
+                        showRescheduleModal = true
                     }
                 }
                 .disabled(isUpdating)
-
-                if selectedAction == .reschedule {
-                    rescheduleSection
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .move(edge: .top)),
-                            removal: .opacity
-                        ))
-                }
             }
 
             requestCallButton
@@ -459,6 +461,10 @@ struct AppointmentRow: View {
             Button("No", role: .cancel) {
                 handleAlertDismissed()
             }
+        }
+        .fullScreenCover(isPresented: $showRescheduleModal) {
+            rescheduleModal
+                .presentationBackground(.clear)
         }
     }
 
@@ -526,134 +532,203 @@ struct AppointmentRow: View {
         .disabled(callRequested)
     }
 
-    // MARK: - Reschedule section (date, time, notes)
+    // MARK: - Reschedule modal (date, time, notes)
 
     private var trimmedNotes: String {
         notesText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var rescheduleSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+    private var dateDisplayFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM yyyy"
+        return formatter
+    }
 
-            // MARK: New date
-            VStack(alignment: .leading, spacing: 6) {
+    private var rescheduleModal: some View {
+        ZStack {
 
-                Text("New Date")
-                    .font(.custom("Inter18pt-Regular", size: 11))
-                    .foregroundColor(.white.opacity(0.4))
-                    .textCase(.uppercase)
+            Color.black.opacity(0.75)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    showRescheduleModal = false
+                }
 
-                DatePicker(
-                    "",
-                    selection: $rescheduleDate,
-                    in: Date()...,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.compact)
-                .labelsHidden()
-                .colorScheme(.dark)
-                .tint(.orange)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.white.opacity(0.03))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
-                )
-            }
+            VStack(alignment: .leading, spacing: 18) {
 
-            // MARK: New time
-            VStack(alignment: .leading, spacing: 6) {
+                // MARK: Header — title + close button
+                HStack {
+                    Text("Reschedule Appointment")
+                        .font(.custom("Inter18pt-SemiBold", size: 18))
+                        .foregroundColor(.white)
 
-                Text("New Time")
-                    .font(.custom("Inter18pt-Regular", size: 11))
-                    .foregroundColor(.white.opacity(0.4))
-                    .textCase(.uppercase)
+                    Spacer()
 
-                DatePicker(
-                    "",
-                    selection: $rescheduleTime,
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.compact)
-                .labelsHidden()
-                .colorScheme(.dark)
-                .tint(.orange)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.white.opacity(0.03))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
-                )
-            }
+                    Button {
+                        showRescheduleModal = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.6))
+                            .frame(width: 28, height: 28)
+                            .background(Circle().fill(Color.white.opacity(0.08)))
+                    }
+                }
 
-            // MARK: Notes
-            VStack(alignment: .leading, spacing: 6) {
+                // MARK: New date
+                VStack(alignment: .leading, spacing: 6) {
 
-                Text("Notes")
-                    .font(.custom("Inter18pt-Regular", size: 11))
-                    .foregroundColor(.white.opacity(0.4))
-                    .textCase(.uppercase)
+                    Text("New Date")
+                        .font(.custom("Inter18pt-Regular", size: 11))
+                        .foregroundColor(.white.opacity(0.4))
+                        .textCase(.uppercase)
 
-                ZStack(alignment: .topLeading) {
-
-                    if notesText.isEmpty {
-                        Text("Add a reason for this reschedule…")
-                            .font(.custom("Inter18pt-Regular", size: 13))
-                            .foregroundColor(.white.opacity(0.3))
+                    Button {
+                        showDatePopover = true
+                    } label: {
+                        Text(dateDisplayFormatter.string(from: rescheduleDate))
+                            .font(.custom("Inter18pt-SemiBold", size: 14))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.white.opacity(0.05))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                            )
                     }
+                    .buttonStyle(.plain)
+                    .sheet(isPresented: $showDatePopover) {
+                        VStack(spacing: 0) {
 
-                    TextEditor(text: $notesText)
-                        .focused($notesFieldFocused)
-                        .font(.custom("Inter18pt-Regular", size: 13))
-                        .foregroundColor(.white.opacity(0.9))
-                        .scrollContentBackground(.hidden)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .frame(height: 70)
+                            DatePicker(
+                                "",
+                                selection: $rescheduleDate,
+                                in: Date()...,
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(.graphical)
+                            .labelsHidden()
+                            .colorScheme(.dark)
+                            .tint(.orange)
+                            .padding()
+                            .onChange(of: rescheduleDate) { _ in
+                                // Auto-dismiss the calendar as soon as a date is picked,
+                                // rather than requiring the person to close it manually.
+                                showDatePopover = false
+                            }
+
+                            Spacer()
+                        }
+                        .presentationDetents([.height(420)])
+                        .presentationDragIndicator(.visible)
+                        .background(Color.black.ignoresSafeArea())
+                    }
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.white.opacity(0.03))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.orange.opacity(0.4), lineWidth: 1)
-                )
-            }
 
-            HStack {
-                Spacer()
+                // MARK: New time
+                VStack(alignment: .leading, spacing: 6) {
 
-                Button {
-                    guard !trimmedNotes.isEmpty else { return }
-                    print("Appointment ID: \(appointment.id)")
-                    notesFieldFocused = false
-                    onReschedule(trimmedNotes, rescheduleDate, rescheduleTime)
-                    selectedAction = nil
-                    notesText = ""
-                } label: {
-                    Text("Save")
-                        .font(.custom("Inter18pt-SemiBold", size: 12))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(trimmedNotes.isEmpty ? Color.orange.opacity(0.4) : Color.orange)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    Text("New Time")
+                        .font(.custom("Inter18pt-Regular", size: 11))
+                        .foregroundColor(.white.opacity(0.4))
+                        .textCase(.uppercase)
+
+                    DatePicker(
+                        "",
+                        selection: $rescheduleTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .colorScheme(.dark)
+                    .tint(.orange)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.white.opacity(0.05))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                    )
                 }
-                .disabled(trimmedNotes.isEmpty)
+
+                // MARK: Notes
+                VStack(alignment: .leading, spacing: 6) {
+
+                    Text("Notes")
+                        .font(.custom("Inter18pt-Regular", size: 11))
+                        .foregroundColor(.white.opacity(0.4))
+                        .textCase(.uppercase)
+
+                    ZStack(alignment: .topLeading) {
+
+                        if notesText.isEmpty {
+                            Text("Add a reason for this reschedule…")
+                                .font(.custom("Inter18pt-Regular", size: 13))
+                                .foregroundColor(.white.opacity(0.3))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                        }
+
+                        TextEditor(text: $notesText)
+                            .focused($notesFieldFocused)
+                            .font(.custom("Inter18pt-Regular", size: 13))
+                            .foregroundColor(.white.opacity(0.9))
+                            .scrollContentBackground(.hidden)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .frame(height: 70)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.white.opacity(0.05))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                    )
+                }
+
+                // MARK: Save
+                HStack {
+                    Spacer()
+
+                    Button {
+                        guard !trimmedNotes.isEmpty else { return }
+                        print("Appointment ID: \(appointment.id)")
+                        notesFieldFocused = false
+                        onReschedule(trimmedNotes, rescheduleDate, rescheduleTime)
+                        notesText = ""
+                        showRescheduleModal = false
+                    } label: {
+                        Text("Save")
+                            .font(.custom("Inter18pt-SemiBold", size: 13))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(trimmedNotes.isEmpty ? Color.orange.opacity(0.4) : Color.orange)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .disabled(trimmedNotes.isEmpty)
+                }
             }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color(red: 0.09, green: 0.09, blue: 0.09))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+            )
+            .padding(.horizontal, 24)
         }
     }
 
@@ -776,3 +851,4 @@ struct AppointmentListSkeleton: View {
         AppointmentListScreen()
     }
 }
+
