@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct AppointmentListScreen: View {
 
     @StateObject private var viewModel = AppointmentListViewModel()
@@ -15,6 +16,8 @@ struct AppointmentListScreen: View {
     @State private var showOfflineAlert = false
     @State private var showActionErrorAlert = false
     @Environment(\.dismiss) private var dismiss
+    
+    @State private var showConsultNowScreen = false
 
     var body: some View {
 
@@ -25,7 +28,7 @@ struct AppointmentListScreen: View {
 
             VStack(alignment: .leading, spacing: 24) {
 
-                // MARK: Back button + Title — inline, fixed, never scrolls
+                // MARK: Back button + Title + Add button — inline, fixed, never scrolls
                 HStack(spacing: 16) {
 
                     Button {
@@ -40,8 +43,24 @@ struct AppointmentListScreen: View {
                     }
 
                     Text("Appointments")
-                        .font(.custom("Inter24pt-Bold", size: 28))
+                        .font(.custom("Inter24pt-Bold", size: 24))
                         .foregroundColor(.white)
+
+                    Spacer()
+
+                    Button {
+                        print("Add appointment tapped")
+                        // TODO: Hook up navigation to the "create appointment" flow.
+                        showConsultNowScreen = true
+                        
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 36, height: 36)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Circle())
+                    }
                 }
                 .padding(.top, 20)
                 .padding(.horizontal, 20)
@@ -68,6 +87,12 @@ struct AppointmentListScreen: View {
                     await viewModel.refreshAppointmentList()
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showConsultNowScreen) {
+            ConsultNowScreen()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .appointmentCreated)) { _ in
+            loadData()
         }
         .onAppear {
             loadData()
@@ -851,4 +876,3 @@ struct AppointmentListSkeleton: View {
         AppointmentListScreen()
     }
 }
-

@@ -148,4 +148,6 @@ extension Notification.Name {
     /// outside HomeScreen's own UI (e.g. the push-notification "Take Now"
     /// full-screen cover), so HomeScreen can refresh its dashboard data.
     static let medicationMarkedAsTaken = Notification.Name("medicationMarkedAsTaken")
+    
+    static let appointmentCreated = Notification.Name("appointmentCreated")
 }

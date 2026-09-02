@@ -212,6 +212,7 @@ struct ConsultNowScreen: View {
         }
         .onChange(of: consultVM.appointmentResponse) { response in
             guard response != nil else { return }
+            NotificationCenter.default.post(name: .appointmentCreated, object: nil)
             dismiss()
         }
         
