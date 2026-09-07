@@ -45,22 +45,6 @@ struct AppointmentListScreen: View {
                     Text("Appointments")
                         .font(.custom("Inter24pt-Bold", size: 24))
                         .foregroundColor(.white)
-
-                    Spacer()
-
-                    Button {
-                        print("Add appointment tapped")
-                        // TODO: Hook up navigation to the "create appointment" flow.
-                        showConsultNowScreen = true
-                        
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 36, height: 36)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
                 }
                 .padding(.top, 20)
                 .padding(.horizontal, 20)
@@ -86,13 +70,17 @@ struct AppointmentListScreen: View {
                 .refreshable {
                     await viewModel.refreshAppointmentList()
                 }
+
+                // MARK: Book Appointment — pinned footer, matches ConsultNowScreen's
+                // "Book Appointment" button styling (white fill, black semibold text).
+                bookAppointmentButton
+                    .padding(.horizontal, 20)
+                    .padding(.top, 4)
+                    .padding(.bottom, 8)
             }
         }
         .fullScreenCover(isPresented: $showConsultNowScreen) {
             ConsultNowScreen()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .appointmentCreated)) { _ in
-            loadData()
         }
         .onAppear {
             loadData()
@@ -125,6 +113,25 @@ struct AppointmentListScreen: View {
             Text(statusViewModel.errorMessage ?? "Please try again.")
         }
         .navigationBarBackButtonHidden(true)
+    }
+
+    // MARK: - Book Appointment button (footer)
+
+    private var bookAppointmentButton: some View {
+        Button {
+            print("Book appointment tapped")
+            showConsultNowScreen = true
+        } label: {
+            Text("Book Appointment")
+                .font(.custom("Inter18pt-SemiBold", size: 17))
+                .foregroundColor(.black)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white)
+                )
+        }
     }
 
 
@@ -876,3 +883,4 @@ struct AppointmentListSkeleton: View {
         AppointmentListScreen()
     }
 }
+
