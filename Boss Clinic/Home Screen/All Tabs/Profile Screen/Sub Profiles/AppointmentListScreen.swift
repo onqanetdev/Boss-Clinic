@@ -85,6 +85,12 @@ struct AppointmentListScreen: View {
         .onAppear {
             loadData()
         }
+        // ConsultNowScreen posts this after a successful request —
+        // refresh the list so the new "Request" appointment shows up.
+        .onReceive(NotificationCenter.default.publisher(for: .appointmentCreated)) { _ in
+            viewModel.isLoading = true
+            loadData()
+        }
         .onChange(of: viewModel.isOffline) { offline in
             if offline {
                 showOfflineAlert = true
@@ -122,8 +128,8 @@ struct AppointmentListScreen: View {
             print("Book appointment tapped")
             showConsultNowScreen = true
         } label: {
-            Text("Book Appointment")
-                .font(.custom("Inter18pt-SemiBold", size: 17))
+            Text("Request Appointment")
+                .font(.custom("Inter18pt-SemiBold", size: 16))
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
@@ -471,10 +477,11 @@ struct AppointmentRow: View {
                         showRescheduleModal = true
                     }
                 }
-                .disabled(isUpdating)
+                .disabled(isUpdating || isPendingRequest)
+                .opacity(isPendingRequest ? 0.4 : 1)
             }
 
-            requestCallButton
+          //  requestCallButton
         }
         .padding(16)
         .background(
@@ -534,35 +541,35 @@ struct AppointmentRow: View {
 
     // MARK: - Request a call button
 
-    private var requestCallButton: some View {
-        Button {
-            print("Appointment ID: \(appointment.id)")
-            callRequested = true
-            onRequestCall()
-        } label: {
-            HStack(spacing: 8) {
-
-                Image(systemName: callRequested ? "checkmark.circle.fill" : "phone.fill")
-                    .font(.system(size: 12))
-
-                Text(callRequested ? "We'll call you shortly" : "I want a call from clinic")
-                    .font(.custom("Inter18pt-SemiBold", size: 12))
-            }
-            .foregroundColor(callRequested ? .green : .white.opacity(0.85))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white.opacity(0.04))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-        .disabled(callRequested)
-    }
+//    private var requestCallButton: some View {
+//        Button {
+//            print("Appointment ID: \(appointment.id)")
+//            callRequested = true
+//            onRequestCall()
+//        } label: {
+//            HStack(spacing: 8) {
+//
+//                Image(systemName: callRequested ? "checkmark.circle.fill" : "phone.fill")
+//                    .font(.system(size: 12))
+//
+//                Text(callRequested ? "We'll call you shortly" : "I want a call from clinic")
+//                    .font(.custom("Inter18pt-SemiBold", size: 12))
+//            }
+//            .foregroundColor(callRequested ? .green : .white.opacity(0.85))
+//            .frame(maxWidth: .infinity)
+//            .padding(.vertical, 10)
+//            .background(
+//                RoundedRectangle(cornerRadius: 10)
+//                    .fill(Color.white.opacity(0.04))
+//            )
+//            .overlay(
+//                RoundedRectangle(cornerRadius: 10)
+//                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+//            )
+//        }
+//        .buttonStyle(.plain)
+//        .disabled(callRequested)
+//    }
 
     // MARK: - Reschedule modal (date, time, notes)
 
@@ -803,6 +810,11 @@ struct AppointmentRow: View {
         appointment.status != .completed && appointment.status != .cancelled
     }
 
+    // Request is pending clinic approval, so the row actions can't be used yet.
+    private var isPendingRequest: Bool {
+        appointment.status == .request
+    }
+
     // Strips seconds off "17:25:00" → "17:25" for display.
     private var displayTime: String {
         String(appointment.appointmentTime.prefix(5))
@@ -828,6 +840,8 @@ struct AppointmentRow: View {
             return .green
         case .unknown:
             return .white.opacity(0.4)
+        case .request:
+            return .white.opacity(0.75)
         }
     }
 }
@@ -883,4 +897,5 @@ struct AppointmentListSkeleton: View {
         AppointmentListScreen()
     }
 }
+
 

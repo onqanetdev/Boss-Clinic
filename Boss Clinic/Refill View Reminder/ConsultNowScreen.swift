@@ -23,6 +23,7 @@ struct ConsultNowScreen: View {
     }
     
     @State private var showOfflineAlert = false
+    @State private var showSuccessPopup = false
 
     var body: some View {
         ZStack {
@@ -166,7 +167,7 @@ struct ConsultNowScreen: View {
                         consultVM.createAppointment(
                             appointmentDate: dateFormatter.string(from: selectedDate),
                             appointmentTime: timeFormatter.string(from: selectedTime),
-                            status: "scheduled",
+                            //status: "scheduled",
                             reason: reason
                         )
                     } label: {
@@ -175,8 +176,8 @@ struct ConsultNowScreen: View {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .black))
                             } else {
-                                Text("Book Appointment")
-                                    .font(.custom("Inter18pt-SemiBold", size: 17))
+                                Text("Request Appointment")
+                                    .font(.custom("Inter18pt-SemiBold", size: 16))
                                     .foregroundColor(.black)
                             }
                         }
@@ -209,16 +210,35 @@ struct ConsultNowScreen: View {
                 .padding(.top, 24)
                 .padding(.bottom, 32)
             }
+            
+            // MARK: Success popup
+            if showSuccessPopup {
+                Color.black.opacity(0.6)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+
+                successPopup
+                    .padding(.horizontal, 28)
+                    .transition(.scale(scale: 0.9).combined(with: .opacity))
+            }
+            
         }
-        .onChange(of: consultVM.appointmentResponse) { response in
-            guard response != nil else { return }
-            NotificationCenter.default.post(name: .appointmentCreated, object: nil)
-            dismiss()
-        }
+//        .onChange(of: consultVM.appointmentResponse) { response in
+//            guard response != nil else { return }
+//            NotificationCenter.default.post(name: .appointmentCreated, object: nil)
+//            dismiss()
+//        }
         
         .onChange(of: consultVM.isOffline) { offline in
             if offline {
                 showOfflineAlert = true
+            }
+        }
+        .onChange(of: consultVM.appointmentResponse) { response in
+            guard response != nil else { return }
+            NotificationCenter.default.post(name: .appointmentCreated, object: nil)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showSuccessPopup = true
             }
         }
         .alert("No Internet Connection", isPresented: $showOfflineAlert) {
@@ -227,6 +247,61 @@ struct ConsultNowScreen: View {
             Text("Please check your internet connection and try again.")
         }
     }
+    
+    
+    
+    // MARK: - Success popup
+
+    private var successPopup: some View {
+        VStack(spacing: 16) {
+
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.15))
+                    .frame(width: 72, height: 72)
+
+                Image(systemName: "checkmark")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundColor(.green)
+            }
+            .padding(.top, 4)
+
+            Text("Request Sent")
+                .font(.custom("Inter24pt-Bold", size: 22))
+                .foregroundColor(.white)
+
+            Text("Your appointment request has been sent. You'll be notified once the clinic confirms it.")
+                .font(.custom("Inter18pt-Regular", size: 14))
+                .foregroundColor(.white.opacity(0.6))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showSuccessPopup = false
+                }
+                dismiss()
+            } label: {
+                Text("Done")
+                    .font(.custom("Inter18pt-SemiBold", size: 16))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white)
+                    )
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 8)
+        }
+        .padding(24)
+        .background(Color(red: 0.11, green: 0.11, blue: 0.11))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
+    }
+    
+    
 }
 
 #Preview {

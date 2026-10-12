@@ -59,7 +59,11 @@ struct LoginView: View {
  
                 if showOTPField {
  
-                    Text("OTP(\(loginVM.otpResponse?.data.otp ?? "No OTPr"))")
+//                    Text("OTP(\(loginVM.otpResponse?.data.otp ?? "No OTPr"))")
+//                        .font(.custom("Inter18pt-SemiBold", size: 16))
+//                        .foregroundColor(Color.white)
+//                        .padding(.bottom, 10)
+                    Text("OTP")
                         .font(.custom("Inter18pt-SemiBold", size: 16))
                         .foregroundColor(Color.white)
                         .padding(.bottom, 10)

@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.onqanet.Boss-Clinic</string>
+	<string>au.com.bossclinic</string>
 	<key>PROJECT_ID</key>
 	<string>testbossclinicnotify</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:782481744350:ios:3f69ac5f4f0f7f4803fd4f</string>
+	<string>1:782481744350:ios:7a459f41d09eefda03fd4f</string>
 </dict>
 </plist>

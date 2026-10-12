@@ -46,6 +46,9 @@ class AppointmentListAPICaller {
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        print("User Access Token from Appointment list: ", accessToken)
+        
 
         let body: [String: Any] = [
             "page": page,

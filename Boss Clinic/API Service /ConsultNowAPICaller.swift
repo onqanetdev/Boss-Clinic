@@ -16,7 +16,7 @@ class ConsultNowAPICaller {
     func createAppointment(
         appointmentDate: String,
         appointmentTime: String,
-        status: String,
+       // status: String,
         reason: String,
         completion: @escaping (Result<BookAppointmentResponse, NetworkError>) -> Void
     ) {
@@ -52,7 +52,7 @@ class ConsultNowAPICaller {
         let body: [String: Any] = [
             "appointment_date": appointmentDate,
             "appointment_time": appointmentTime,
-            "status": status,
+            //"status": status,
             "reason": reason
         ]
         

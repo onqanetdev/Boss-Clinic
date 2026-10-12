@@ -18,6 +18,7 @@ struct AppointmentListResponse: Codable, Equatable {
 // MARK: - Appointment Status
 
 enum AppointmentStatus: String, Codable {
+    case request
     case scheduled
     case rescheduled
     case completed
@@ -25,14 +26,20 @@ enum AppointmentStatus: String, Codable {
     case called
     case confirmed
     case unknown
+
+    // Any status string the app doesn't know yet decodes as .unknown
+    // instead of failing the whole response.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = (try? container.decode(String.self))?.lowercased() ?? ""
+        self = AppointmentStatus(rawValue: rawValue) ?? .unknown
+    }
 }
 
 // MARK: - Appointment
 
 struct Appointment: Codable, Identifiable, Equatable {
 
-    // The API does include a real "id" field, so this is decoded
-    // directly rather than synthesized.
     let id: String
     let userID: String
     let username: String

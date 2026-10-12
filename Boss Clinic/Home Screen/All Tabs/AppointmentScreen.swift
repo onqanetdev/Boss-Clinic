@@ -38,10 +38,25 @@ struct AppointmentScreen: View {
                 // MARK: Title + Add button
                 HStack {
                     Text("All Medications")
-                        .font(.custom("Inter24pt-Bold", size: 23 ))
+                        .font(.custom("Inter24pt-Bold", size: 23))
                         .foregroundColor(.white)
 
                     Spacer()
+
+                    Button {
+                        showAddMedication = true
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.12))
+                                .frame(width: 40, height: 40)
+
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
                 .padding(.top, 20)
                 .padding(.bottom, 16)
@@ -123,9 +138,7 @@ struct AppointmentScreen: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showAddMedication) {
-            Text("Add Medication")
-                .foregroundColor(.white)
-                .background(Color.black.ignoresSafeArea())
+            AddMedicationScreen()
         }
         .onAppear {
             medicationVM.fetchMedicationList(pageNumber: 0, perPageContent: 10, reset: true)

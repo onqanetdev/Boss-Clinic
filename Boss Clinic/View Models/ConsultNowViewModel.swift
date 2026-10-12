@@ -21,7 +21,7 @@ final class ConsultNowViewModel: ObservableObject {
     func createAppointment(
         appointmentDate: String,
         appointmentTime: String,
-        status: String,
+        //status: String,
         reason: String
     ) {
 
@@ -31,7 +31,7 @@ final class ConsultNowViewModel: ObservableObject {
         apiCaller.createAppointment(
             appointmentDate: appointmentDate,
             appointmentTime: appointmentTime,
-            status: status,
+           // status: status,
             reason: reason
         ) { [weak self] result in
 

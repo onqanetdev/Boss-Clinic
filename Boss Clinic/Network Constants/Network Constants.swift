@@ -35,4 +35,6 @@ enum APIEndpoint: String {
 }
 
 
-let baseURL = "https://onqanet.net/dev_waqueel01/bossclinic/public/api/"
+//let baseURL = "https://onqanet.net/dev_waqueel01/bossclinic/public/api/"
+let baseURL = "https://a.bossclinic.com.au/api/"
+
