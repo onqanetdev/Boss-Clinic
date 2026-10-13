@@ -32,6 +32,8 @@ enum APIEndpoint: String {
     case appointmentList = "my-appointments"
     case appointmentStatus = "appointments/status"
     
+    case medicationType = "patient-medication-type"
+    
 }
 
 

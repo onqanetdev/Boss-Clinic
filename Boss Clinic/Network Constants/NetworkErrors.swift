@@ -70,3 +70,26 @@ final class NetworkMonitor {
 }
 
 
+
+enum MedicationTypeAPIError: LocalizedError {
+    case offline
+    case invalidURL
+    case invalidResponse
+    case unauthorized
+    case serverError(Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .offline:
+            return "No internet connection."
+        case .invalidURL:
+            return "Invalid URL."
+        case .invalidResponse:
+            return "Invalid response from server."
+        case .unauthorized:
+            return "Your session has expired. Please log in again."
+        case .serverError(let code):
+            return "Something went wrong (\(code)). Please try again."
+        }
+    }
+}

@@ -9,6 +9,7 @@ import SwiftUI
 
 // MARK: - Form Models
 
+
 struct MedicationTimeEntry: Hashable {
     var hour: Int = 12
     var minute: Int = 0
@@ -53,7 +54,6 @@ struct AddMedicationEntry: Identifiable {
 // MARK: - Static Options (replace with API data later)
 
 private enum MedicationOptions {
-    static let types = ["Tablet", "Capsule", "Syrup", "Injection", "Drops", "Ointment", "Inhaler"]
     static let frequencies = ["Once Daily", "Twice Daily", "Thrice Daily", "Four Times Daily",
                               "Every 8 Hours", "As Needed", "Weekly"]
 }
@@ -79,6 +79,9 @@ struct AddMedicationScreen: View {
 
     @State private var validationMessage = ""
     @State private var showValidationAlert = false
+
+    @StateObject private var medicationTypeVM = MedicationTypeViewModel()
+    @State private var showOfflineAlert = false
 
     var body: some View {
 
@@ -107,6 +110,8 @@ struct AddMedicationScreen: View {
                                 MedicineFormCard(
                                     entry: $entry,
                                     index: index,
+                                    typeOptions: medicationTypeVM.medicationTypes,
+                                    isLoadingTypes: medicationTypeVM.isLoading,
                                     canRemove: entries.count > 1,
                                     onRemove: { removeEntry(id: entry.id) },
                                     onPickDate: { field in openDatePicker(for: entry, field: field) }
@@ -136,6 +141,21 @@ struct AddMedicationScreen: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(validationMessage)
+        }
+        .onAppear {
+            if medicationTypeVM.medicationTypes.isEmpty {
+                medicationTypeVM.fetchMedicationTypes()
+            }
+        }
+        .onChange(of: medicationTypeVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .alert("No Internet Connection", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please check your internet connection and try again.")
         }
     }
 
@@ -344,6 +364,8 @@ private struct MedicineFormCard: View {
 
     @Binding var entry: AddMedicationEntry
     let index: Int
+    let typeOptions: [MedicationTypeOption]
+    let isLoadingTypes: Bool
     let canRemove: Bool
     let onRemove: () -> Void
     let onPickDate: (DatePickerTarget.Field) -> Void
@@ -374,9 +396,13 @@ private struct MedicineFormCard: View {
 
             HStack(alignment: .top, spacing: 12) {
                 FormField("Type") {
-                    DropdownField(placeholder: "Select Type",
+                    DropdownField(placeholder: isLoadingTypes ? "Loading..." : "Select Type",
                                   selection: $entry.type,
-                                  options: MedicationOptions.types)
+                                  options: typeOptions.map(\.value),
+                                  displayText: { value in
+                                      typeOptions.first(where: { $0.value == value })?.label ?? value
+                                  })
+                    .disabled(isLoadingTypes || typeOptions.isEmpty)
                 }
                 FormField("Dose") {
                     InputField(placeholder: "e.g. 1", text: $entry.dose, keyboard: .numberPad)
@@ -504,23 +530,22 @@ private struct DropdownField: View {
     let placeholder: String
     @Binding var selection: String
     let options: [String]
+    /// Maps a stored value to the text shown (e.g. API value → label)
+    var displayText: (String) -> String = { $0 }
+
+    @State private var isOpen = false
+    @State private var fieldWidth: CGFloat = 0
+
+    private let rowHeight: CGFloat = 46
 
     var body: some View {
-        Menu {
-            ForEach(options, id: \.self) { option in
-                Button {
-                    selection = option
-                } label: {
-                    if selection == option {
-                        Label(option, systemImage: "checkmark")
-                    } else {
-                        Text(option)
-                    }
-                }
-            }
+        // A Button + popover (instead of Menu) keeps the field visible
+        // and shows the list just below it.
+        Button {
+            isOpen = true
         } label: {
             HStack(spacing: 4) {
-                Text(selection.isEmpty ? placeholder : selection)
+                Text(selection.isEmpty ? placeholder : displayText(selection))
                     .font(.custom("Inter18pt-Regular", size: 14))
                     .foregroundColor(selection.isEmpty ? .white.opacity(0.35) : .white)
                     .lineLimit(1)
@@ -531,10 +556,68 @@ private struct DropdownField: View {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white.opacity(0.5))
+                    .rotationEffect(.degrees(isOpen ? 180 : 0))
+                    .animation(.easeInOut(duration: 0.2), value: isOpen)
             }
             .formFieldStyle()
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(isOpen ? 0.35 : 0), lineWidth: 1)
+            )
             .contentShape(Rectangle())
+            .background(
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear { fieldWidth = geo.size.width }
+                        .onChange(of: geo.size.width) { fieldWidth = $0 }
+                }
+            )
         }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isOpen, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+            optionsList
+                .presentationCompactAdaptation(.popover)
+                .presentationBackground(Color(red: 0.15, green: 0.15, blue: 0.15))
+        }
+    }
+
+    private var optionsList: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                ForEach(options, id: \.self) { option in
+                    Button {
+                        selection = option
+                        isOpen = false
+                    } label: {
+                        HStack {
+                            Text(displayText(option))
+                                .font(.custom(selection == option ? "Inter18pt-SemiBold" : "Inter18pt-Regular", size: 14))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+
+                            Spacer()
+
+                            if selection == option {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: rowHeight)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    if option != options.last {
+                        Divider()
+                            .background(Color.white.opacity(0.1))
+                    }
+                }
+            }
+        }
+        .frame(width: max(fieldWidth, 180),
+               height: min(CGFloat(options.count) * rowHeight, 280))
     }
 }
 
