@@ -33,6 +33,7 @@ enum APIEndpoint: String {
     case appointmentStatus = "appointments/status"
     
     case medicationType = "patient-medication-type"
+    case patientAddMedication = "patient-add-medication"
     
 }
 

@@ -35,9 +35,28 @@ import Foundation
 
 class MedicationTypeAPICaller {
 
-    private let urlString = "https://a.bossclinic.com.au/api/patient-medication-type"
+    private let typeURLString = "https://a.bossclinic.com.au/api/patient-medication-type"
+    private let frequencyURLString = "https://a.bossclinic.com.au/api/patient-medication-frequency"
+
+    // MARK: - Medication Types
 
     func fetchMedicationTypes(completion: @escaping (Result<MedicationTypeResponse, Error>) -> Void) {
+        fetchOptions(urlString: typeURLString, logName: "Medication Type", completion: completion)
+    }
+
+    // MARK: - Medication Frequencies
+
+    func fetchMedicationFrequencies(completion: @escaping (Result<MedicationTypeResponse, Error>) -> Void) {
+        fetchOptions(urlString: frequencyURLString, logName: "Medication Frequency", completion: completion)
+    }
+
+    // MARK: - Shared GET (both endpoints return { success, message, data: [{ value, label }] })
+
+    private func fetchOptions(
+        urlString: String,
+        logName: String,
+        completion: @escaping (Result<MedicationTypeResponse, Error>) -> Void
+    ) {
 
         guard NetworkMonitor.shared.isConnected else {
             print("❌ No internet connection")
@@ -70,7 +89,7 @@ class MedicationTypeAPICaller {
         URLSession.shared.dataTask(with: request) { data, response, error in
 
             if let error = error {
-                print("❌ Medication Type Error: \(error.localizedDescription)")
+                print("❌ \(logName) Error: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     completion(.failure(error))
                 }
@@ -78,27 +97,27 @@ class MedicationTypeAPICaller {
             }
 
             guard let httpResponse = response as? HTTPURLResponse, let data = data else {
-                print("❌ Invalid response")
+                print("❌ \(logName) Invalid response")
                 DispatchQueue.main.async {
                     completion(.failure(MedicationTypeAPIError.invalidResponse))
                 }
                 return
             }
 
-            print("📌 Medication Type Status Code: \(httpResponse.statusCode)")
+            print("📌 \(logName) Status Code: \(httpResponse.statusCode)")
 
             switch httpResponse.statusCode {
 
             case 200...299:
-                print("📌 Medication Type Raw Response: \(String(data: data, encoding: .utf8) ?? "")")
+                print("📌 \(logName) Raw Response: \(String(data: data, encoding: .utf8) ?? "")")
                 do {
                     let decoded = try JSONDecoder().decode(MedicationTypeResponse.self, from: data)
-                    print("✅ Medication Types: \(decoded.data.count) loaded")
+                    print("✅ \(logName): \(decoded.data.count) loaded")
                     DispatchQueue.main.async {
                         completion(.success(decoded))
                     }
                 } catch {
-                    print("❌ Medication Type Decoding Error: \(error)")
+                    print("❌ \(logName) Decoding Error: \(error)")
                     DispatchQueue.main.async {
                         completion(.failure(error))
                     }
@@ -113,7 +132,7 @@ class MedicationTypeAPICaller {
 
             default:
                 let body = String(data: data, encoding: .utf8) ?? ""
-                print("❌ Medication Type Server Error \(httpResponse.statusCode): \(body)")
+                print("❌ \(logName) Server Error \(httpResponse.statusCode): \(body)")
                 DispatchQueue.main.async {
                     completion(.failure(MedicationTypeAPIError.serverError(httpResponse.statusCode)))
                 }

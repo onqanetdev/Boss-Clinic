@@ -51,13 +51,6 @@ struct AddMedicationEntry: Identifiable {
     }
 }
 
-// MARK: - Static Options (replace with API data later)
-
-private enum MedicationOptions {
-    static let frequencies = ["Once Daily", "Twice Daily", "Thrice Daily", "Four Times Daily",
-                              "Every 8 Hours", "As Needed", "Weekly"]
-}
-
 private struct DatePickerTarget: Identifiable {
     enum Field { case start, end }
 
@@ -112,6 +105,8 @@ struct AddMedicationScreen: View {
                                     index: index,
                                     typeOptions: medicationTypeVM.medicationTypes,
                                     isLoadingTypes: medicationTypeVM.isLoading,
+                                    frequencyOptions: medicationTypeVM.medicationFrequencies,
+                                    isLoadingFrequencies: medicationTypeVM.isLoadingFrequencies,
                                     canRemove: entries.count > 1,
                                     onRemove: { removeEntry(id: entry.id) },
                                     onPickDate: { field in openDatePicker(for: entry, field: field) }
@@ -145,6 +140,9 @@ struct AddMedicationScreen: View {
         .onAppear {
             if medicationTypeVM.medicationTypes.isEmpty {
                 medicationTypeVM.fetchMedicationTypes()
+            }
+            if medicationTypeVM.medicationFrequencies.isEmpty {
+                medicationTypeVM.fetchMedicationFrequencies()
             }
         }
         .onChange(of: medicationTypeVM.isOffline) { offline in
@@ -366,6 +364,8 @@ private struct MedicineFormCard: View {
     let index: Int
     let typeOptions: [MedicationTypeOption]
     let isLoadingTypes: Bool
+    let frequencyOptions: [MedicationTypeOption]
+    let isLoadingFrequencies: Bool
     let canRemove: Bool
     let onRemove: () -> Void
     let onPickDate: (DatePickerTarget.Field) -> Void
@@ -414,9 +414,13 @@ private struct MedicineFormCard: View {
                     InputField(placeholder: "e.g. 500", text: $entry.mg, keyboard: .decimalPad)
                 }
                 FormField("Frequency") {
-                    DropdownField(placeholder: "Select frequency",
+                    DropdownField(placeholder: isLoadingFrequencies ? "Loading..." : "Select frequency",
                                   selection: $entry.frequency,
-                                  options: MedicationOptions.frequencies)
+                                  options: frequencyOptions.map(\.value),
+                                  displayText: { value in
+                                      frequencyOptions.first(where: { $0.value == value })?.label ?? value
+                                  })
+                    .disabled(isLoadingFrequencies || frequencyOptions.isEmpty)
                 }
             }
 
