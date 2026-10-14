@@ -111,7 +111,7 @@ struct AppointmentReminderView: View {
                 Button {
                     onDismiss()
                 } label: {
-                    Text("Dismiss")
+                    Text("Okay")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity)

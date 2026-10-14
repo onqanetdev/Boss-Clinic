@@ -22,12 +22,14 @@ struct DashboardData: Codable, Equatable {
     let todaySchedule: [TodaySchedule]
     let refillReminders: [RefillReminder]
     let summary: DashboardSummary
+    let meta: DashboardMeta?
 
     enum CodingKeys: String, CodingKey {
         case nextMedication = "next_medication"
         case todaySchedule = "today_schedule"
         case refillReminders = "refill_reminders"
         case summary
+        case meta
     }
 }
 
@@ -35,7 +37,7 @@ struct DashboardData: Codable, Equatable {
 struct NextMedication: Codable, Equatable {
     let medicineId: String
     let name: String
-    let strength: String
+    let strength: String?          // ⚠️ can be null
     let time: String
     let status: String
     let logId: String?
@@ -53,15 +55,16 @@ struct NextMedication: Codable, Equatable {
 }
 
 // MARK: - Today's Schedule
-struct TodaySchedule: Codable, Identifiable , Equatable{
-    
-    var id: String {
-            "\(time)-\(medicineName)"
-        }
-    
+struct TodaySchedule: Codable, Identifiable, Equatable {
+
+    // The same medicine can appear more than once at the same time
+    // (e.g. FOAM at 08:00 three times), so each row gets its own ID.
+    // Not part of CodingKeys, so it isn't decoded from the API.
+    var id = UUID()
+
     let time: String
     let medicineName: String
-    let strength: String
+    let strength: String?          // ⚠️ can be null
     let status: String
 
     enum CodingKeys: String, CodingKey {
@@ -69,6 +72,14 @@ struct TodaySchedule: Codable, Identifiable , Equatable{
         case medicineName = "medicine_name"
         case strength
         case status
+    }
+
+    // Compare the API data only, not the generated ID
+    static func == (lhs: TodaySchedule, rhs: TodaySchedule) -> Bool {
+        lhs.time == rhs.time &&
+        lhs.medicineName == rhs.medicineName &&
+        lhs.strength == rhs.strength &&
+        lhs.status == rhs.status
     }
 }
 
@@ -79,8 +90,7 @@ struct RefillReminder: Codable, Equatable, Identifiable {
     let remainingStock: Int
     let daysLeft: Int
     let buttonText: String
-    
-    
+
     var id: String { medicineId }
 
     enum CodingKeys: String, CodingKey {
@@ -106,6 +116,25 @@ struct DashboardSummary: Codable, Equatable {
         case pending
         case upcoming
         case missed
+    }
+}
+
+// MARK: - Pagination Meta
+struct DashboardMeta: Codable, Equatable {
+    let currentPage: Int
+    let lastPage: Int
+    let perPage: Int
+    let total: Int
+    let from: Int?                 // null when the list is empty
+    let to: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case currentPage = "current_page"
+        case lastPage = "last_page"
+        case perPage = "per_page"
+        case total
+        case from
+        case to
     }
 }
 

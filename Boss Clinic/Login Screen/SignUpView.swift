@@ -48,7 +48,8 @@ struct SignUpView: View {
                         .foregroundColor(Color.white)
                         .padding(.bottom, 5)
  
-                    Text("We've sent a code to \(phone). OTP is \(registerVM.registerResponse?.data.otp ?? "No OTP")")
+//                    Text("We've sent a code to \(phone). OTP is \(registerVM.registerResponse?.data.otp ?? "No OTP")")
+                    Text("We've sent a code to \(phone).")
                         .font(.custom("Inter18pt-Regular", size: 12))
                         .foregroundColor(.white.opacity(0.7))
                         .padding(.bottom, 5)

@@ -45,15 +45,24 @@ struct AddMedicationEntry: Identifiable {
     var frequency = ""
     var times: [MedicationTimeEntry] = [MedicationTimeEntry(hour: 8, minute: 0, period: "AM")]
     var startDate = Date()
-    var totalDays = ""     // prescribed by the doctor — entered by the user
-    var takenDoses = ""    // doses already taken — entered by the user
+    var endDate: Date?     // picked by the user
+    var takenDoses = ""    // doses already bought — entered by the user
 
     // MARK: Calculated values
 
     /// 3 timings → 3 doses a day
     var dosesPerDay: Int { times.count }
 
-    var totalDaysValue: Int { Int(totalDays) ?? 0 }
+    /// Total prescribed days = start → end, counting both days
+    /// e.g. start 13/10, end 17/10 → 5 days. Not shown to the user.
+    var totalDaysValue: Int {
+        guard let endDate else { return 0 }
+        let calendar = Calendar.current
+        let s = calendar.startOfDay(for: startDate)
+        let e = calendar.startOfDay(for: endDate)
+        guard e >= s else { return 0 }
+        return (calendar.dateComponents([.day], from: s, to: e).day ?? 0) + 1
+    }
 
     var takenDosesValue: Int { Int(takenDoses) ?? 0 }
 
@@ -62,16 +71,6 @@ struct AddMedicationEntry: Identifiable {
 
     /// Remaining stock = total medication − doses taken
     var remainingStock: Int { max(totalMedication - takenDosesValue, 0) }
-
-    /// Last date = start date + (total days − 1), counting the start day
-    /// e.g. start 13/10, 5 days → 17/10
-    var endDate: Date? {
-        guard totalDaysValue > 0 else { return nil }
-        let calendar = Calendar.current
-        return calendar.date(byAdding: .day,
-                             value: totalDaysValue - 1,
-                             to: calendar.startOfDay(for: startDate))
-    }
 
     var dosageText: String {
         dosesPerDay == 1 ? "1 time a day" : "\(dosesPerDay) times a day"
@@ -83,9 +82,12 @@ struct AddMedicationEntry: Identifiable {
     }
 }
 
-private struct StartDateTarget: Identifiable {
+private struct DatePickerTarget: Identifiable {
+    enum Field { case start, end }
+
     let id = UUID()
     let entryID: UUID
+    let field: Field
 }
 
 private let displayDateFormatter: DateFormatter = {
@@ -102,7 +104,7 @@ struct AddMedicationScreen: View {
 
     @State private var entries: [AddMedicationEntry] = [AddMedicationEntry()]
 
-    @State private var startDateTarget: StartDateTarget?
+    @State private var datePickerTarget: DatePickerTarget?
     @State private var tempDate = Date()
 
     @State private var validationMessage = ""
@@ -147,7 +149,7 @@ struct AddMedicationScreen: View {
                                     isLoadingFrequencies: medicationTypeVM.isLoadingFrequencies,
                                     canRemove: entries.count > 1,
                                     onRemove: { removeEntry(id: entry.id) },
-                                    onPickStartDate: { openStartDatePicker(for: entry) }
+                                    onPickDate: { field in openDatePicker(for: entry, field: field) }
                                 )
                                 .id(entry.id)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -167,8 +169,8 @@ struct AddMedicationScreen: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .sheet(item: $startDateTarget) { target in
-            startDatePickerSheet(target)
+        .sheet(item: $datePickerTarget) { target in
+            datePickerSheet(target)
         }
         .alert("Missing Details", isPresented: $showValidationAlert) {
             Button("OK", role: .cancel) { }
@@ -316,32 +318,32 @@ struct AddMedicationScreen: View {
         }
     }
 
-    // MARK: - Start Date Picker Sheet
+    // MARK: - Date Picker Sheet (Start / End)
 
-    private func startDatePickerSheet(_ target: StartDateTarget) -> some View {
+    private func datePickerSheet(_ target: DatePickerTarget) -> some View {
         VStack(spacing: 0) {
 
             HStack {
-                Button("Cancel") { startDateTarget = nil }
+                Button("Cancel") { datePickerTarget = nil }
                     .font(.custom("Inter18pt-Regular", size: 15))
                     .foregroundColor(.white.opacity(0.6))
 
                 Spacer()
 
-                Text("Start Date")
+                Text(target.field == .start ? "Start Date" : "End Date")
                     .font(.custom("Inter18pt-SemiBold", size: 16))
                     .foregroundColor(.white)
 
                 Spacer()
 
-                Button("Done") { applyStartDate(target) }
+                Button("Done") { applyDate(target) }
                     .font(.custom("Inter18pt-SemiBold", size: 15))
                     .foregroundColor(.white)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
 
-            DatePicker("", selection: $tempDate, displayedComponents: .date)
+            DatePicker("", selection: $tempDate, in: dateRange(for: target), displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .labelsHidden()
                 .tint(.white)
@@ -356,16 +358,36 @@ struct AddMedicationScreen: View {
 
     // MARK: - Actions
 
-    private func openStartDatePicker(for entry: AddMedicationEntry) {
-        tempDate = entry.startDate
-        startDateTarget = StartDateTarget(entryID: entry.id)
+    /// End date can't be before the start date
+    private func dateRange(for target: DatePickerTarget) -> PartialRangeFrom<Date> {
+        guard target.field == .end,
+              let entry = entries.first(where: { $0.id == target.entryID }) else {
+            return Date.distantPast...
+        }
+        return Calendar.current.startOfDay(for: entry.startDate)...
     }
 
-    private func applyStartDate(_ target: StartDateTarget) {
+    private func openDatePicker(for entry: AddMedicationEntry, field: DatePickerTarget.Field) {
+        tempDate = field == .start ? entry.startDate : (entry.endDate ?? entry.startDate)
+        datePickerTarget = DatePickerTarget(entryID: entry.id, field: field)
+    }
+
+    private func applyDate(_ target: DatePickerTarget) {
         guard let i = entries.firstIndex(where: { $0.id == target.entryID }) else { return }
-        // End date is calculated from start date + total days, so it updates automatically
-        entries[i].startDate = tempDate
-        startDateTarget = nil
+
+        switch target.field {
+        case .start:
+            entries[i].startDate = tempDate
+            // Clear the end date if it's now before the new start date
+            if let end = entries[i].endDate,
+               Calendar.current.startOfDay(for: end) < Calendar.current.startOfDay(for: tempDate) {
+                entries[i].endDate = nil
+            }
+        case .end:
+            entries[i].endDate = tempDate
+        }
+
+        datePickerTarget = nil
     }
 
     private func removeEntry(id: UUID) {
@@ -384,7 +406,7 @@ struct AddMedicationScreen: View {
             if Set(entry.times.map(\.apiValue)).count != entry.times.count {
                 return fail("Each medication time must be different\(suffix).")
             }
-            if entry.totalDaysValue <= 0 { return fail("Please enter the days prescribed by your doctor\(suffix).") }
+            if entry.endDate == nil { return fail("Please select an end date\(suffix).") }
         }
 
         addMedicationVM.addMedications(entries: entries)
@@ -408,7 +430,7 @@ private struct MedicineFormCard: View {
     let isLoadingFrequencies: Bool
     let canRemove: Bool
     let onRemove: () -> Void
-    let onPickStartDate: () -> Void
+    let onPickDate: (DatePickerTarget.Field) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -462,21 +484,20 @@ private struct MedicineFormCard: View {
             // Dosage (doses per day = number of timings) is still calculated and
             // sent to the API as "dose", just not shown to the user.
 
-            // 5 + 6. Start date / Prescribed days
+            // 5 + 6. Start date / End date
+            // Total prescribed days is calculated from these two dates (not shown).
             HStack(alignment: .top, spacing: 12) {
                 FormField("Start Date") {
-                    DateButton(date: entry.startDate, action: onPickStartDate)
+                    DateButton(date: entry.startDate) { onPickDate(.start) }
                 }
-                FormField("Total Prescribed Days", hint: "As prescribed by your doctor") {
-                    InputField(placeholder: "e.g. 5", text: $entry.totalDays, keyboard: .numberPad, digitsOnly: true)
+                FormField("End Date") {
+                    DateButton(date: entry.endDate) { onPickDate(.end) }
                 }
             }
 
-            // End date is still calculated (start + prescribed days) and sent to the API,
-            // just not shown to the user.
-            FormField("Total Doses Needed", hint: "Doses required to complete the full course") {
-                ReadOnlyField(value: "\(entry.totalMedication)")
-            }
+//            FormField("Total Doses Needed", hint: "Doses required to complete the full course") {
+//                ReadOnlyField(value: "\(entry.totalMedication)")
+//            }
 
             // 7. Doses purchased (input) / Doses left to buy (calculated)
             HStack(alignment: .top, spacing: 12) {
@@ -736,15 +757,15 @@ private struct DropdownField: View {
 }
 
 private struct DateButton: View {
-    let date: Date
+    let date: Date?
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Text(displayDateFormatter.string(from: date))
+                Text(date.map { displayDateFormatter.string(from: $0) } ?? "dd/mm/yyyy")
                     .font(.custom("Inter18pt-Regular", size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(date == nil ? .white.opacity(0.35) : .white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
 
