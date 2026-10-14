@@ -30,24 +30,24 @@ struct NextMedicationCardView: View {
                     .font(.custom("Inter18pt-Regular", size: 13))
                     .foregroundColor(.white)
 
-                Spacer()
+        //        Spacer()
 
-                Button {
-
-                    //print("Medication Taken")
-                    onMarkAsTaken()
-                } label: {
-
-                    Text("Mark as Taken")
-                        .font(.custom("Inter18pt-SemiBold", size: 13))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 18)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                        )
-                }
+//                Button {
+//
+//                    //print("Medication Taken")
+//                    onMarkAsTaken()
+//                } label: {
+//
+//                    Text("Mark as Taken")
+//                        .font(.custom("Inter18pt-SemiBold", size: 13))
+//                        .foregroundColor(.white)
+//                        .padding(.horizontal, 10)
+//                        .padding(.vertical, 18)
+//                        .overlay(
+//                            RoundedRectangle(cornerRadius: 18)
+//                                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+//                        )
+//                }
             }
         }
         .padding(24)

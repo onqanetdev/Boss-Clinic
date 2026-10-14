@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+
 struct ConsultNowScreen: View {
 
     @Environment(\.dismiss) private var dismiss
@@ -205,6 +206,21 @@ struct ConsultNowScreen: View {
                                     .stroke(Color.white.opacity(0.3), lineWidth: 1)
                             )
                     }
+
+                    // MARK: Request info note
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.45))
+                            .padding(.top, 1)
+
+                        Text("This is an appointment request. Our team will contact you to arrange and confirm your booking.")
+                            .font(.custom("Inter18pt-Regular", size: 12))
+                            .foregroundColor(.white.opacity(0.45))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 20)
                 }
                 .padding(.horizontal, 28)
                 .padding(.top, 24)
@@ -223,12 +239,6 @@ struct ConsultNowScreen: View {
             }
             
         }
-//        .onChange(of: consultVM.appointmentResponse) { response in
-//            guard response != nil else { return }
-//            NotificationCenter.default.post(name: .appointmentCreated, object: nil)
-//            dismiss()
-//        }
-        
         .onChange(of: consultVM.isOffline) { offline in
             if offline {
                 showOfflineAlert = true
@@ -247,8 +257,6 @@ struct ConsultNowScreen: View {
             Text("Please check your internet connection and try again.")
         }
     }
-    
-    
     
     // MARK: - Success popup
 
@@ -300,8 +308,6 @@ struct ConsultNowScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
     }
-    
-    
 }
 
 #Preview {

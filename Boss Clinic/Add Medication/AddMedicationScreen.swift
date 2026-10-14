@@ -9,55 +9,90 @@ import SwiftUI
 
 // MARK: - Form Models
 
-
-struct MedicationTimeEntry: Hashable {
+struct MedicationTimeEntry: Identifiable, Hashable {
+    let id = UUID()
     var hour: Int = 12
     var minute: Int = 0
     var period: String = "AM"
 
-    /// 24-hour "HH:mm" — ready for the API later
+    /// 24-hour "HH:mm"
     var apiValue: String {
+        String(format: "%02d:%02d", hour24, minute)
+    }
+
+    /// 12-hour "01:00 PM" — format the add-medication API expects in "times"
+    var requestValue: String {
+        String(format: "%02d:%02d %@", hour, minute, period)
+    }
+
+    var hour24: Int {
         var h = hour % 12
         if period == "PM" { h += 12 }
-        return String(format: "%02d:%02d", h, minute)
+        return h
+    }
+
+    /// One hour after this time — used as the default for a newly added time
+    var nextHour: MedicationTimeEntry {
+        let next24 = (hour24 + 1) % 24
+        let next12 = next24 % 12 == 0 ? 12 : next24 % 12
+        return MedicationTimeEntry(hour: next12, minute: minute, period: next24 >= 12 ? "PM" : "AM")
     }
 }
 
 struct AddMedicationEntry: Identifiable {
     let id = UUID()
     var type = ""
-    var dose = ""
-    var mg = ""
     var frequency = ""
-    var time = MedicationTimeEntry()
-    var startDate: Date? = Date()
-    var endDate: Date?
-    var totalDay = ""
-    var takenDayStock = ""
+    var times: [MedicationTimeEntry] = [MedicationTimeEntry(hour: 8, minute: 0, period: "AM")]
+    var startDate = Date()
+    var totalDays = ""     // prescribed by the doctor — entered by the user
+    var takenDoses = ""    // doses already taken — entered by the user
 
-    var remainingStock: Int {
-        max((Int(totalDay) ?? 0) - (Int(takenDayStock) ?? 0), 0)
+    // MARK: Calculated values
+
+    /// 3 timings → 3 doses a day
+    var dosesPerDay: Int { times.count }
+
+    var totalDaysValue: Int { Int(totalDays) ?? 0 }
+
+    var takenDosesValue: Int { Int(takenDoses) ?? 0 }
+
+    /// Total medication = total days × doses per day
+    var totalMedication: Int { totalDaysValue * dosesPerDay }
+
+    /// Remaining stock = total medication − doses taken
+    var remainingStock: Int { max(totalMedication - takenDosesValue, 0) }
+
+    /// Last date = start date + (total days − 1), counting the start day
+    /// e.g. start 13/10, 5 days → 17/10
+    var endDate: Date? {
+        guard totalDaysValue > 0 else { return nil }
+        let calendar = Calendar.current
+        return calendar.date(byAdding: .day,
+                             value: totalDaysValue - 1,
+                             to: calendar.startOfDay(for: startDate))
     }
 
-    /// Auto-fills Total Day from Start / End date (inclusive)
-    mutating func updateTotalDays() {
-        guard let start = startDate, let end = endDate else { return }
-        let calendar = Calendar.current
-        let s = calendar.startOfDay(for: start)
-        let e = calendar.startOfDay(for: end)
-        guard e >= s else { return }
-        let days = calendar.dateComponents([.day], from: s, to: e).day ?? 0
-        totalDay = "\(days + 1)"
+    var dosageText: String {
+        dosesPerDay == 1 ? "1 time a day" : "\(dosesPerDay) times a day"
+    }
+
+    mutating func addTime() {
+        let newTime = times.last?.nextHour ?? MedicationTimeEntry()
+        times.append(newTime)
     }
 }
 
-private struct DatePickerTarget: Identifiable {
-    enum Field { case start, end }
-
+private struct StartDateTarget: Identifiable {
     let id = UUID()
     let entryID: UUID
-    let field: Field
 }
+
+private let displayDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd/MM/yyyy"
+    return formatter
+}()
 
 // MARK: - Screen
 
@@ -67,7 +102,7 @@ struct AddMedicationScreen: View {
 
     @State private var entries: [AddMedicationEntry] = [AddMedicationEntry()]
 
-    @State private var datePickerTarget: DatePickerTarget?
+    @State private var startDateTarget: StartDateTarget?
     @State private var tempDate = Date()
 
     @State private var validationMessage = ""
@@ -75,6 +110,9 @@ struct AddMedicationScreen: View {
 
     @StateObject private var medicationTypeVM = MedicationTypeViewModel()
     @State private var showOfflineAlert = false
+
+    @StateObject private var addMedicationVM = AddMedicationViewModel()
+    @State private var showSaveErrorAlert = false
 
     var body: some View {
 
@@ -109,7 +147,7 @@ struct AddMedicationScreen: View {
                                     isLoadingFrequencies: medicationTypeVM.isLoadingFrequencies,
                                     canRemove: entries.count > 1,
                                     onRemove: { removeEntry(id: entry.id) },
-                                    onPickDate: { field in openDatePicker(for: entry, field: field) }
+                                    onPickStartDate: { openStartDatePicker(for: entry) }
                                 )
                                 .id(entry.id)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -129,8 +167,8 @@ struct AddMedicationScreen: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .sheet(item: $datePickerTarget) { target in
-            datePickerSheet(target)
+        .sheet(item: $startDateTarget) { target in
+            startDatePickerSheet(target)
         }
         .alert("Missing Details", isPresented: $showValidationAlert) {
             Button("OK", role: .cancel) { }
@@ -149,6 +187,28 @@ struct AddMedicationScreen: View {
             if offline {
                 showOfflineAlert = true
             }
+        }
+        .onChange(of: addMedicationVM.isOffline) { offline in
+            if offline {
+                showOfflineAlert = true
+            }
+        }
+        .onChange(of: addMedicationVM.errorMessage) { message in
+            if message != nil {
+                showSaveErrorAlert = true
+            }
+        }
+        .onChange(of: addMedicationVM.addResponse?.success) { success in
+            guard success == true else { return }
+            NotificationCenter.default.post(name: .medicationAdded, object: nil)
+            dismiss()
+        }
+        .alert("Something Went Wrong", isPresented: $showSaveErrorAlert) {
+            Button("OK", role: .cancel) {
+                addMedicationVM.errorMessage = nil
+            }
+        } message: {
+            Text(addMedicationVM.errorMessage ?? "Please try again.")
         }
         .alert("No Internet Connection", isPresented: $showOfflineAlert) {
             Button("OK", role: .cancel) { }
@@ -236,44 +296,52 @@ struct AddMedicationScreen: View {
             .buttonStyle(.plain)
 
             Button(action: saveAll) {
-                Text(entries.count > 1 ? "Save All Medications" : "Save Medication")
-                    .font(.custom("Inter18pt-SemiBold", size: 15))
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                Group {
+                    if addMedicationVM.isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                    } else {
+                        Text(entries.count > 1 ? "Save All Medications" : "Save Medication")
+                            .font(.custom("Inter18pt-SemiBold", size: 15))
+                            .foregroundColor(.black)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
             .buttonStyle(.plain)
+            .disabled(addMedicationVM.isLoading)
         }
     }
 
-    // MARK: - Date Picker Sheet
+    // MARK: - Start Date Picker Sheet
 
-    private func datePickerSheet(_ target: DatePickerTarget) -> some View {
+    private func startDatePickerSheet(_ target: StartDateTarget) -> some View {
         VStack(spacing: 0) {
 
             HStack {
-                Button("Cancel") { datePickerTarget = nil }
+                Button("Cancel") { startDateTarget = nil }
                     .font(.custom("Inter18pt-Regular", size: 15))
                     .foregroundColor(.white.opacity(0.6))
 
                 Spacer()
 
-                Text(target.field == .start ? "Start Date" : "End Date")
+                Text("Start Date")
                     .font(.custom("Inter18pt-SemiBold", size: 16))
                     .foregroundColor(.white)
 
                 Spacer()
 
-                Button("Done") { applyDate(target) }
+                Button("Done") { applyStartDate(target) }
                     .font(.custom("Inter18pt-SemiBold", size: 15))
                     .foregroundColor(.white)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
 
-            DatePicker("", selection: $tempDate, in: dateRange(for: target), displayedComponents: .date)
+            DatePicker("", selection: $tempDate, displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .labelsHidden()
                 .tint(.white)
@@ -286,41 +354,18 @@ struct AddMedicationScreen: View {
         .presentationDetents([.height(420)])
     }
 
-    private func dateRange(for target: DatePickerTarget) -> PartialRangeFrom<Date> {
-        guard target.field == .end,
-              let entry = entries.first(where: { $0.id == target.entryID }),
-              let start = entry.startDate else {
-            return Date.distantPast...
-        }
-        return Calendar.current.startOfDay(for: start)...
-    }
-
     // MARK: - Actions
 
-    private func openDatePicker(for entry: AddMedicationEntry, field: DatePickerTarget.Field) {
-        let current = field == .start ? entry.startDate : entry.endDate
-        tempDate = current ?? entry.startDate ?? Date()
-        datePickerTarget = DatePickerTarget(entryID: entry.id, field: field)
+    private func openStartDatePicker(for entry: AddMedicationEntry) {
+        tempDate = entry.startDate
+        startDateTarget = StartDateTarget(entryID: entry.id)
     }
 
-    private func applyDate(_ target: DatePickerTarget) {
+    private func applyStartDate(_ target: StartDateTarget) {
         guard let i = entries.firstIndex(where: { $0.id == target.entryID }) else { return }
-
-        switch target.field {
-        case .start:
-            entries[i].startDate = tempDate
-            // Clear end date if it's now before the start date
-            if let end = entries[i].endDate,
-               Calendar.current.startOfDay(for: end) < Calendar.current.startOfDay(for: tempDate) {
-                entries[i].endDate = nil
-                entries[i].totalDay = ""
-            }
-        case .end:
-            entries[i].endDate = tempDate
-        }
-
-        entries[i].updateTotalDays()
-        datePickerTarget = nil
+        // End date is calculated from start date + total days, so it updates automatically
+        entries[i].startDate = tempDate
+        startDateTarget = nil
     }
 
     private func removeEntry(id: UUID) {
@@ -333,21 +378,16 @@ struct AddMedicationScreen: View {
         for (i, entry) in entries.enumerated() {
             let suffix = entries.count > 1 ? " for Medicine \(i + 1)" : ""
 
-            if entry.type.isEmpty { return fail("Please select a type\(suffix).") }
-            if entry.dose.trimmingCharacters(in: .whitespaces).isEmpty { return fail("Please enter a dose\(suffix).") }
+            if entry.type.isEmpty { return fail("Please select a medication type\(suffix).") }
             if entry.frequency.isEmpty { return fail("Please select a frequency\(suffix).") }
-            if entry.startDate == nil { return fail("Please select a start date\(suffix).") }
-            if entry.endDate == nil { return fail("Please select an end date\(suffix).") }
+            if entry.times.isEmpty { return fail("Please add at least one time\(suffix).") }
+            if Set(entry.times.map(\.apiValue)).count != entry.times.count {
+                return fail("Each medication time must be different\(suffix).")
+            }
+            if entry.totalDaysValue <= 0 { return fail("Please enter the days prescribed by your doctor\(suffix).") }
         }
 
-        // TODO: Replace with API call
-        for (i, entry) in entries.enumerated() {
-            print("📌 Medicine \(i + 1): \(entry.type) | dose \(entry.dose) | \(entry.mg) mg | \(entry.frequency) | \(entry.time.apiValue)")
-            print("📌 Total Day: \(entry.totalDay) | Taken: \(entry.takenDayStock) | Remaining: \(entry.remainingStock)")
-        }
-        print("✅ \(entries.count) medication(s) ready to save")
-
-        dismiss()
+        addMedicationVM.addMedications(entries: entries)
     }
 
     private func fail(_ message: String) {
@@ -368,7 +408,7 @@ private struct MedicineFormCard: View {
     let isLoadingFrequencies: Bool
     let canRemove: Bool
     let onRemove: () -> Void
-    let onPickDate: (DatePickerTarget.Field) -> Void
+    let onPickStartDate: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -394,8 +434,9 @@ private struct MedicineFormCard: View {
                 }
             }
 
+            // 1 + 2. Type / Frequency
             HStack(alignment: .top, spacing: 12) {
-                FormField("Type") {
+                FormField("Medication Type") {
                     DropdownField(placeholder: isLoadingTypes ? "Loading..." : "Select Type",
                                   selection: $entry.type,
                                   options: typeOptions.map(\.value),
@@ -403,15 +444,6 @@ private struct MedicineFormCard: View {
                                       typeOptions.first(where: { $0.value == value })?.label ?? value
                                   })
                     .disabled(isLoadingTypes || typeOptions.isEmpty)
-                }
-                FormField("Dose") {
-                    InputField(placeholder: "e.g. 1", text: $entry.dose, keyboard: .numberPad)
-                }
-            }
-
-            HStack(alignment: .top, spacing: 12) {
-                FormField("Mg") {
-                    InputField(placeholder: "e.g. 500", text: $entry.mg, keyboard: .decimalPad)
                 }
                 FormField("Frequency") {
                     DropdownField(placeholder: isLoadingFrequencies ? "Loading..." : "Select frequency",
@@ -424,50 +456,36 @@ private struct MedicineFormCard: View {
                 }
             }
 
-            FormField("Time") {
-                HStack(spacing: 8) {
-                    CompactMenu(title: "\(entry.time.hour)",
-                                options: (1...12).map { "\($0)" }) {
-                        entry.time.hour = Int($0) ?? 12
-                    }
+            // 3. Timings (multiple)
+            timesSection
 
-                    Text(":")
-                        .font(.custom("Inter18pt-SemiBold", size: 14))
-                        .foregroundColor(.white.opacity(0.5))
+            // Dosage (doses per day = number of timings) is still calculated and
+            // sent to the API as "dose", just not shown to the user.
 
-                    CompactMenu(title: String(format: "%02d", entry.time.minute),
-                                options: (0..<60).map { String(format: "%02d", $0) }) {
-                        entry.time.minute = Int($0) ?? 0
-                    }
-
-                    CompactMenu(title: entry.time.period, options: ["AM", "PM"]) {
-                        entry.time.period = $0
-                    }
-
-                    Spacer()
-                }
-            }
-
+            // 5 + 6. Start date / Prescribed days
             HStack(alignment: .top, spacing: 12) {
                 FormField("Start Date") {
-                    DateButton(date: entry.startDate) { onPickDate(.start) }
+                    DateButton(date: entry.startDate, action: onPickStartDate)
                 }
-                FormField("End Date") {
-                    DateButton(date: entry.endDate) { onPickDate(.end) }
+                FormField("Total Prescribed Days", hint: "As prescribed by your doctor") {
+                    InputField(placeholder: "e.g. 5", text: $entry.totalDays, keyboard: .numberPad, digitsOnly: true)
                 }
             }
 
+            // End date is still calculated (start + prescribed days) and sent to the API,
+            // just not shown to the user.
+            FormField("Total Doses Needed", hint: "Doses required to complete the full course") {
+                ReadOnlyField(value: "\(entry.totalMedication)")
+            }
+
+            // 7. Doses purchased (input) / Doses left to buy (calculated)
             HStack(alignment: .top, spacing: 12) {
-                FormField("Total Day") {
-                    InputField(placeholder: "0", text: $entry.totalDay, keyboard: .numberPad)
+                FormField("Doses Purchased", hint: "Doses you have already bought") {
+                    InputField(placeholder: "0", text: $entry.takenDoses, keyboard: .numberPad, digitsOnly: true)
                 }
-                FormField("Taken Day Stock") {
-                    InputField(placeholder: "0", text: $entry.takenDayStock, keyboard: .numberPad)
+                FormField("Doses Left to Buy", hint: "Doses you still need to buy") {
+                    ReadOnlyField(value: "\(entry.remainingStock)")
                 }
-            }
-
-            FormField("Remaining Stock") {
-                ReadOnlyField(value: "\(entry.remainingStock)")
             }
         }
         .padding(16)
@@ -478,16 +496,88 @@ private struct MedicineFormCard: View {
                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
         )
     }
+
+    // MARK: Times
+
+    private var timesSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+
+            Text("Timings")
+                .font(.custom("Inter18pt-Regular", size: 13))
+                .foregroundColor(.gray)
+
+            ForEach($entry.times) { $time in
+                let timeID = time.id
+
+                HStack(spacing: 8) {
+                    CompactMenu(title: "\(time.hour)",
+                                options: (1...12).map { "\($0)" }) {
+                        time.hour = Int($0) ?? 12
+                    }
+
+                    Text(":")
+                        .font(.custom("Inter18pt-SemiBold", size: 14))
+                        .foregroundColor(.white.opacity(0.5))
+
+                    CompactMenu(title: String(format: "%02d", time.minute),
+                                options: (0..<60).map { String(format: "%02d", $0) }) {
+                        time.minute = Int($0) ?? 0
+                    }
+
+                    CompactMenu(title: time.period, options: ["AM", "PM"]) {
+                        time.period = $0
+                    }
+
+                    Spacer()
+
+                    if entry.times.count > 1 {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                entry.times.removeAll { $0.id == timeID }
+                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.red.opacity(0.85))
+                                .frame(width: 32, height: 32)
+                                .background(Color.red.opacity(0.12))
+                                .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    entry.addTime()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Add Time")
+                        .font(.custom("Inter18pt-SemiBold", size: 13))
+                }
+                .foregroundColor(.white.opacity(0.8))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 2)
+        }
+    }
 }
 
 // MARK: - Form Components
 
 private struct FormField<Content: View>: View {
     let title: String
+    //let hint: String?
     let content: Content
 
-    init(_ title: String, @ViewBuilder content: () -> Content) {
+    init(_ title: String, hint: String? = nil, @ViewBuilder content: () -> Content) {
         self.title = title
+       // self.hint = hint
         self.content = content()
     }
 
@@ -496,8 +586,18 @@ private struct FormField<Content: View>: View {
             Text(title)
                 .font(.custom("Inter18pt-Regular", size: 13))
                 .foregroundColor(.gray)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
 
             content
+
+            // Small helper line under the field explaining what it means
+//            if let hint {
+//                Text(hint)
+//                    .font(.custom("Inter18pt-Regular", size: 11))
+//                    .foregroundColor(.white.opacity(0.4))
+//                    .fixedSize(horizontal: false, vertical: true)
+//            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -507,6 +607,7 @@ private struct InputField: View {
     let placeholder: String
     @Binding var text: String
     var keyboard: UIKeyboardType = .default
+    var digitsOnly: Bool = false
 
     var body: some View {
         TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.white.opacity(0.35)))
@@ -515,6 +616,13 @@ private struct InputField: View {
             .tint(.white)
             .keyboardType(keyboard)
             .formFieldStyle()
+            .onChange(of: text) { newValue in
+                guard digitsOnly else { return }
+                let digits = newValue.filter(\.isNumber)
+                if digits != newValue {
+                    text = digits
+                }
+            }
     }
 }
 
@@ -525,6 +633,8 @@ private struct ReadOnlyField: View {
         Text(value)
             .font(.custom("Inter18pt-Regular", size: 14))
             .foregroundColor(.white.opacity(0.6))
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
             .frame(maxWidth: .infinity, alignment: .leading)
             .formFieldStyle()
     }
@@ -626,21 +736,15 @@ private struct DropdownField: View {
 }
 
 private struct DateButton: View {
-    let date: Date?
+    let date: Date
     let action: () -> Void
-
-    private static let formatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "dd/MM/yyyy"
-        return f
-    }()
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Text(date.map { Self.formatter.string(from: $0) } ?? "dd/mm/yyyy")
+                Text(displayDateFormatter.string(from: date))
                     .font(.custom("Inter18pt-Regular", size: 14))
-                    .foregroundColor(date == nil ? .white.opacity(0.35) : .white)
+                    .foregroundColor(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
 
@@ -708,4 +812,3 @@ private extension View {
         AddMedicationScreen()
     }
 }
-
